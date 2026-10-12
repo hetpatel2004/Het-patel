@@ -3,16 +3,9 @@ import { reviewsRow1, reviewsRow2 } from '../data/reviewsData';
 
 export const EditorialReviewsSection: React.FC = () => {
   return (
-    <section id="reviews" className="relative w-full bg-[#ECEBE6] text-[#111111] py-24 sm:py-32 overflow-hidden select-none border-t border-black/10">
+    <section id="reviews" className="relative z-20 w-full bg-[#ECEBE6] text-[#111111] py-24 sm:py-32 overflow-hidden select-none border-t border-black/10">
       {/* Section Header */}
       <div className="max-w-7xl mx-auto px-6 sm:px-12 md:px-20 lg:px-28 mb-16 sm:mb-20">
-        <div className="flex items-center justify-between text-xs font-mono text-black/50 mb-10">
-          <span className="uppercase tracking-widest font-semibold">05 / REVIEWS</span>
-          <div className="w-8 h-8 rounded-full border border-black/20 flex items-center justify-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
-          </div>
-          <span className="uppercase tracking-widest">ENDORSEMENTS</span>
-        </div>
 
         <div className="flex flex-col leading-[0.92] tracking-tight">
           <span className="font-sans font-black uppercase text-5xl sm:text-7xl md:text-8xl text-[#111111]">

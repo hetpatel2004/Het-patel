@@ -206,7 +206,7 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ onOpenContact }) =
               <GithubIcon className="w-4 h-4" />
             </a>
             <a
-              href="https://linkedin.com/in/het-patel"
+              href="https://www.linkedin.com/in/het-patel-b14a65363"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white transition-colors text-blue-400"

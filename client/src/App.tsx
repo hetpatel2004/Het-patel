@@ -8,6 +8,7 @@ import { EditorialReviewsSection } from './components/EditorialReviewsSection';
 import { EditorialContactFooter } from './components/EditorialContactFooter';
 import { ContactModal } from './components/ContactModal';
 import { PricingModal } from './components/PricingModal';
+import { SmoothScroll } from './components/SmoothScroll';
 
 export const App: React.FC = () => {
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -25,23 +26,27 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div
-      style={{ overflowX: 'clip' }}
-      className="bg-[#0C0C0C] min-h-screen text-[#111111] font-sans relative selection:bg-[#B600A8]/30 selection:text-white"
-    >
-      {/* 1. HERO SECTION (100% UNTOUCHED WITH ORIGINAL PROPS) */}
-      <HeroSection
-        onOpenPrice={() => setIsPricingOpen(true)}
-        onOpenContact={() => handleOpenContact('General Project Inquiry')}
-      />
+    <SmoothScroll>
+      <div
+        className="bg-[#0C0C0C] min-h-screen text-[#111111] font-sans relative selection:bg-[#B600A8]/30 selection:text-white"
+      >
+        {/* 1. HERO SECTION (100% UNTOUCHED WITH ORIGINAL PROPS) */}
+        <HeroSection
+          onOpenPrice={() => setIsPricingOpen(true)}
+          onOpenContact={() => handleOpenContact('General Project Inquiry')}
+        />
 
-      {/* 2. "CRAFTING DIGITAL EXPERIENCES" (FRAME 001 - 030 CODED IN REACT) */}
-      <CraftingIntroSection
-        onOpenContact={() => handleOpenContact('Design & Development Inquiry')}
-      />
+        {/* 2 & 3: SECTION 2 STAYS STATIC STICKY UNTIL SECTION 3 ENDS */}
+        <div className="relative w-full">
+          {/* 2. "CRAFTING DIGITAL EXPERIENCES" (FRAME 001 - 030 CODED IN REACT) */}
+          <CraftingIntroSection />
 
-      {/* 3. CURVED CONVEX ARCH REVEAL: "I BUILD THINGS THAT LIVE ON THE WEB *" (FRAME 030 - 110) */}
-      <CurvedAboutSection />
+          {/* Scroll runway so Section 2 stays full screen and sticky before Section 3 rises */}
+          <div className="h-[75vh] pointer-events-none" />
+
+          {/* 3. CURVED CONVEX ARCH REVEAL: "I BUILD THINGS THAT LIVE ON THE WEB *" (FRAME 030 - 110) */}
+          <CurvedAboutSection />
+        </div>
 
       {/* 4. "FEATURED WORK" SHOWCASE: 5 PROJECTS (FRAME 110 - 180) */}
       <FeaturedWorkShowcase />
@@ -70,6 +75,7 @@ export const App: React.FC = () => {
         onSelectTier={handleSelectPricingTier}
       />
     </div>
+    </SmoothScroll>
   );
 };
 

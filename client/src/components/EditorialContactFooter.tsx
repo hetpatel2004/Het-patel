@@ -29,25 +29,7 @@ export const EditorialContactFooter: React.FC<EditorialContactFooterProps> = ({ 
   const marqueeWords = Array(10).fill('CONTACT –');
 
   return (
-    <footer id="contact" className="relative w-full bg-[#ECEBE6] text-[#111111] pt-16 pb-14 overflow-hidden select-none border-t border-black/10">
-      {/* Top Header Watermark & Navigation */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 md:px-20 lg:px-28 mb-12 flex items-center justify-between text-xs font-mono text-black/50">
-        <div className="flex flex-col leading-none font-sans font-bold text-lg text-black">
-          <span>D</span>
-          <span>V</span>
-        </div>
-
-        <div className="w-8 h-8 rounded-full border border-black/20 flex items-center justify-center">
-          <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
-        </div>
-
-        <button
-          onClick={() => onOpenContact('Direct Consultation')}
-          className="uppercase tracking-widest hover:text-black transition-colors cursor-pointer"
-        >
-          MENU
-        </button>
-      </div>
+    <footer id="contact" className="relative z-20 w-full bg-[#ECEBE6] text-[#111111] pt-16 pb-14 overflow-hidden select-none border-t border-black/10">
 
       {/* Dual Big Animated Marquee Banners */}
       <div className="w-full overflow-hidden mb-16 sm:mb-24 opacity-90 group">
@@ -145,6 +127,14 @@ export const EditorialContactFooter: React.FC<EditorialContactFooterProps> = ({ 
         <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex flex-wrap items-center gap-3">
             <a
+              href="tel:+917383539915"
+              className="px-5 py-2.5 rounded-full bg-white hover:bg-black hover:text-white border border-black/15 text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
+            >
+              <span>CALL: +91 7383539915</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+
+            <a
               href="mailto:het.patel.imscit21@gmail.com"
               className="px-5 py-2.5 rounded-full bg-white hover:bg-black hover:text-white border border-black/15 text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
             >
@@ -153,7 +143,7 @@ export const EditorialContactFooter: React.FC<EditorialContactFooterProps> = ({ 
             </a>
 
             <a
-              href="https://linkedin.com/in/het-patel"
+              href="https://www.linkedin.com/in/het-patel-b14a65363"
               target="_blank"
               rel="noreferrer"
               className="px-5 py-2.5 rounded-full bg-white hover:bg-black hover:text-white border border-black/15 text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"

@@ -7,18 +7,22 @@ export const StackSection: React.FC = () => {
 
   const categories = [
     { label: 'All', count: skillsData.length },
-    { label: 'Frontend', count: skillsData.filter((s) => s.category === 'Frontend').length },
-    { label: 'Backend', count: skillsData.filter((s) => s.category === 'Backend').length },
-    { label: 'Database', count: skillsData.filter((s) => s.category === 'Database & Core').length },
-    { label: 'Tooling', count: skillsData.filter((s) => s.category === 'Tooling').length },
+    { label: 'Frontend', count: skillsData.filter((s) => s.category.includes('Frontend')).length },
+    { label: 'Backend', count: skillsData.filter((s) => s.category.includes('Backend')).length },
+    { label: 'Databases', count: skillsData.filter((s) => s.category.includes('Database')).length },
+    { label: 'Tools', count: skillsData.filter((s) => s.category.includes('Tool') || s.category.includes('DevOps')).length },
   ];
 
   const filteredSkills =
     activeCategory === 'All'
       ? skillsData
-      : activeCategory === 'Database'
-      ? skillsData.filter((skill) => skill.category === 'Database & Core')
-      : skillsData.filter((skill) => skill.category === activeCategory);
+      : activeCategory === 'Frontend'
+      ? skillsData.filter((skill) => skill.category.includes('Frontend'))
+      : activeCategory === 'Backend'
+      ? skillsData.filter((skill) => skill.category.includes('Backend'))
+      : activeCategory === 'Databases'
+      ? skillsData.filter((skill) => skill.category.includes('Database'))
+      : skillsData.filter((skill) => skill.category.includes('Tool') || skill.category.includes('DevOps'));
 
   const tickerItems = [
     'REACT.JS',

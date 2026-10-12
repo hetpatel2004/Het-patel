@@ -1,28 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-interface CraftingIntroSectionProps {
-  onOpenContact?: () => void;
-}
-
-export const CraftingIntroSection: React.FC<CraftingIntroSectionProps> = ({ onOpenContact }) => {
+export const CraftingIntroSection: React.FC = () => {
   return (
-    <section className="relative min-h-screen w-full bg-[#ECEBE6] text-[#111111] overflow-hidden flex flex-col justify-between p-6 sm:p-10 md:p-14 select-none">
-      {/* Top Bar: Minimal Monogram & Menu */}
-      <div className="w-full flex items-center justify-between z-20">
-        <div className="flex flex-col leading-none font-sans font-bold text-xl sm:text-2xl tracking-tighter">
-          <span>D</span>
-          <span>V</span>
-        </div>
-
-        <button
-          onClick={onOpenContact}
-          className="px-5 py-2 rounded-full border border-black/20 hover:border-black bg-white/60 hover:bg-white text-xs uppercase font-mono tracking-widest transition-all cursor-pointer shadow-sm"
-        >
-          MENU
-        </button>
-      </div>
-
+    <section
+      id="crafting-intro"
+      className="sticky top-0 h-screen min-h-[100dvh] w-full min-w-full bg-[#ECEBE6] text-[#111111] overflow-hidden flex flex-col justify-between p-6 sm:p-10 md:p-14 select-none z-10"
+    >
       {/* Floating Mockup Cards (Scattered in background layer with subtle parallax/float) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Card 1: Top-Left Monitor preview */}
@@ -87,13 +71,13 @@ export const CraftingIntroSection: React.FC<CraftingIntroSectionProps> = ({ onOp
       </div>
 
       {/* Main Massive Editorial Typography */}
-      <div className="relative z-10 my-auto py-12 flex flex-col justify-center items-center text-center">
+      <div className="relative z-10 my-auto py-6 sm:py-8 flex flex-col justify-center items-center text-center">
         {/* Row 1: CRAFTING (Italic Serif Playfair Display) */}
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="font-serif italic font-normal tracking-tight leading-[0.88] text-[16vw] sm:text-[15vw] md:text-[14vw] lg:text-[13vw] text-[#111111]"
+          className="font-serif italic font-normal tracking-tight leading-[0.9] text-[clamp(3.2rem,12.5vw,9rem)] text-[#111111]"
         >
           CRAFTING
         </motion.h1>
@@ -103,10 +87,10 @@ export const CraftingIntroSection: React.FC<CraftingIntroSectionProps> = ({ onOp
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center justify-center gap-3 sm:gap-6 font-sans font-black uppercase tracking-tight leading-[0.88] text-[16vw] sm:text-[15vw] md:text-[14vw] lg:text-[13vw] text-[#111111]"
+          className="flex items-center justify-center gap-3 sm:gap-6 font-sans font-black uppercase tracking-tight leading-[0.9] text-[clamp(3.2rem,12.5vw,9rem)] text-[#111111]"
         >
           <span>DIGITAL</span>
-          <span className="inline-block animate-[spin_12s_linear_infinite] text-[12vw] sm:text-[10vw]">
+          <span className="inline-block animate-[spin_12s_linear_infinite] text-[clamp(2.5rem,8.5vw,6.5rem)]">
             *
           </span>
         </motion.div>
@@ -116,10 +100,10 @@ export const CraftingIntroSection: React.FC<CraftingIntroSectionProps> = ({ onOp
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center justify-center gap-3 sm:gap-6 font-sans font-black uppercase tracking-tight leading-[0.88] text-[16vw] sm:text-[15vw] md:text-[14vw] lg:text-[13vw] text-[#111111]"
+          className="flex items-center justify-center gap-3 sm:gap-6 font-sans font-black uppercase tracking-tight leading-[0.9] text-[clamp(3.2rem,12.5vw,9rem)] text-[#111111]"
         >
           <span>EXPERIENCES</span>
-          <span className="text-[12vw] sm:text-[10vw] font-light leading-none">
+          <span className="text-[clamp(2.5rem,8.5vw,6.5rem)] font-light leading-none">
             &darr;
           </span>
         </motion.div>

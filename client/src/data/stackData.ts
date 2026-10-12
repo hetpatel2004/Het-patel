@@ -1,35 +1,131 @@
+export interface SkillCategoryGroup {
+  id: string;
+  category: string;
+  shortLabel: string;
+  skills: string[];
+}
+
 export interface SkillItem {
   id: string;
   name: string;
-  category: 'Frontend' | 'Backend' | 'Tooling' | 'Database & Core';
+  category: string;
 }
 
-export const skillsData: SkillItem[] = [
-  { id: '01', name: 'React.js', category: 'Frontend' },
-  { id: '02', name: 'Next.js', category: 'Frontend' },
-  { id: '03', name: 'TypeScript', category: 'Frontend' },
-  { id: '04', name: 'Tailwind CSS', category: 'Frontend' },
-  { id: '05', name: 'JavaScript (ES6+)', category: 'Frontend' },
-  { id: '06', name: 'Framer Motion', category: 'Frontend' },
-  { id: '07', name: 'Redux / Zustand', category: 'Frontend' },
-  
-  { id: '08', name: 'Node.js', category: 'Backend' },
-  { id: '09', name: 'Express.js', category: 'Backend' },
-  { id: '10', name: 'REST APIs', category: 'Backend' },
-  { id: '11', name: 'JWT Auth', category: 'Backend' },
-  { id: '12', name: 'Bcrypt Security', category: 'Backend' },
-  { id: '13', name: 'API Architecture', category: 'Backend' },
-  
-  { id: '14', name: 'MongoDB', category: 'Database & Core' },
-  { id: '15', name: 'Mongoose ORM', category: 'Database & Core' },
-  { id: '16', name: 'MySQL', category: 'Database & Core' },
-  { id: '17', name: 'Data Structures', category: 'Database & Core' },
-  { id: '18', name: 'OOP Concepts', category: 'Database & Core' },
-  
-  { id: '19', name: 'Git & GitHub', category: 'Tooling' },
-  { id: '20', name: 'Postman', category: 'Tooling' },
-  { id: '21', name: 'VS Code', category: 'Tooling' },
-  { id: '22', name: 'Figma (UI/UX)', category: 'Tooling' },
-  { id: '23', name: 'Docker (Basic)', category: 'Tooling' },
-  { id: '24', name: 'Vite & npm', category: 'Tooling' },
+export const technicalSkillsGroups: SkillCategoryGroup[] = [
+  {
+    id: '01',
+    category: 'Frontend Technologies',
+    shortLabel: 'Frontend',
+    skills: [
+      'HTML5',
+      'CSS3',
+      'JavaScript (ES6+)',
+      'React.js',
+      'Bootstrap 5',
+      'React Bootstrap',
+      'Framer Motion',
+    ],
+  },
+  {
+    id: '02',
+    category: 'Backend Technologies',
+    shortLabel: 'Backend',
+    skills: [
+      'Node.js',
+      'Express.js',
+      'REST APIs',
+      'JWT Authentication',
+      'Mongoose',
+    ],
+  },
+  {
+    id: '03',
+    category: 'Databases',
+    shortLabel: 'Databases',
+    skills: [
+      'MongoDB',
+      'MySQL',
+    ],
+  },
+  {
+    id: '04',
+    category: 'Programming Languages',
+    shortLabel: 'Languages',
+    skills: [
+      'JavaScript',
+      'Python (Basic)',
+    ],
+  },
+  {
+    id: '05',
+    category: 'Version Control & Development Tools',
+    shortLabel: 'Dev Tools',
+    skills: [
+      'Git',
+      'GitHub',
+      'VS Code',
+      'Postman',
+      'npm',
+      'XAMPP',
+    ],
+  },
+  {
+    id: '06',
+    category: 'DevOps & Containerization',
+    shortLabel: 'DevOps',
+    skills: [
+      'Docker (Basic)',
+      'DevOps Fundamentals (Basic)',
+    ],
+  },
+  {
+    id: '07',
+    category: 'UI/UX & Design Tools',
+    shortLabel: 'UI/UX Design',
+    skills: [
+      'Figma',
+      'Canva',
+      'Photopea',
+      'Icons8',
+    ],
+  },
+  {
+    id: '08',
+    category: 'AI-Powered Development Tools',
+    shortLabel: 'AI Tools',
+    skills: [
+      'ChatGPT',
+      'Gemini',
+      'OpenCode',
+      'Codex',
+    ],
+  },
+  {
+    id: '09',
+    category: 'CMS & Web Technologies',
+    shortLabel: 'CMS & Web',
+    skills: [
+      'WordPress',
+      'Responsive Web Design',
+    ],
+  },
+  {
+    id: '10',
+    category: 'Core Computer Science Concepts',
+    shortLabel: 'Core CS',
+    skills: [
+      'OOP',
+      'Data Structures & Algorithms (Basic)',
+      'SDLC',
+    ],
+  },
 ];
+
+// Flattened list for backward compatibility
+export const skillsData: SkillItem[] = technicalSkillsGroups.flatMap((group, groupIdx) =>
+  group.skills.map((skill, skillIdx) => ({
+    id: String(groupIdx * 10 + skillIdx + 1).padStart(2, '0'),
+    name: skill,
+    category: group.category,
+  }))
+);
