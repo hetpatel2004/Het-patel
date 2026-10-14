@@ -3,13 +3,6 @@ import { motion } from 'framer-motion';
 import { GraduationCap, Award, MapPin, Calendar, Languages, CheckCircle2 } from 'lucide-react';
 
 export const CurvedAboutSection: React.FC = () => {
-  const stats = [
-    { value: '1+', label: 'YEARS EXPERIENCE' },
-    { value: '12+', label: 'PROJECTS SHIPPED' },
-    { value: '8+', label: 'HAPPY CLIENTS' },
-    { value: '100%', label: 'ON-TIME DELIVERY' },
-  ];
-
   const education = [
     {
       degree: 'Master of Science (M.Sc.) in Information Technology',
@@ -49,28 +42,66 @@ export const CurvedAboutSection: React.FC = () => {
     <section id="about" className="relative z-20 w-full min-w-full min-h-screen min-h-[100dvh] bg-transparent select-none">
       {/* Curved Convex Black Sheet that slides up over Section 2 */}
       <div
-        className="w-full min-w-full min-h-screen min-h-[100dvh] bg-[#000000] text-white pt-16 sm:pt-24 md:pt-28 pb-28 md:pb-36 shadow-[0_-35px_100px_rgba(0,0,0,0.95)] border-t border-white/10"
+        className="w-full min-w-full min-h-screen min-h-[100dvh] bg-[#000000] text-white shadow-[0_-35px_100px_rgba(0,0,0,0.95)] border-t border-white/10"
         style={{
           borderTopLeftRadius: 'clamp(40px, 8vw, 120px)',
           borderTopRightRadius: 'clamp(40px, 8vw, 120px)',
         }}
       >
-        {/* Massive Editorial Headline Container */}
-        <div className="max-w-7xl mx-auto w-full px-6 sm:px-12 md:px-16 lg:px-24 pb-8 sm:pb-12">
-          <div className="flex flex-col leading-[0.92] tracking-tight mb-8 sm:mb-12">
-            <span className="font-serif italic font-normal text-5xl sm:text-7xl md:text-8xl lg:text-9xl text-white">
+        {/* =========================================================================
+            STAGE 1: 100% FULL-SCREEN COVER VIEWPORT (100VW x 100VH)
+            Covers Section 2 completely as one grand full-screen editorial spread
+           ========================================================================= */}
+        <div className="w-full min-w-full h-screen min-h-[100dvh] flex flex-col justify-between px-6 sm:px-12 md:px-16 lg:px-24 pt-8 sm:pt-12 md:pt-14 pb-8 sm:pb-12">
+          {/* Top Header Row: Section Badge, Live Indicator & Location */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-mono text-white/90 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#B600A8] animate-pulse" />
+                <span>02 / ABOUT THE ARCHITECT</span>
+              </span>
+
+              <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>AVAILABLE FOR PRODUCTION ROLES</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-xs font-mono text-white/60">
+              <MapPin className="w-3.5 h-3.5 text-[#B600A8]" />
+              <span>AHMEDABAD, GUJARAT, INDIA</span>
+            </div>
+          </div>
+
+          {/* Center: Massive Grand Typography Spanning One Full Screen */}
+          <div className="flex flex-col leading-[1.05] sm:leading-[1.0] my-auto py-4 sm:py-6 max-w-7xl mx-auto w-full">
+            <span className="font-serif italic font-normal text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] xl:text-[11.5rem] text-white tracking-wide">
               I build things
             </span>
-            <span className="font-serif italic font-normal text-5xl sm:text-7xl md:text-8xl lg:text-9xl text-white mt-2">
+            <span className="font-serif italic font-normal text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] xl:text-[11.5rem] text-white tracking-wide mt-1 sm:mt-2">
               that live
             </span>
-            <div className="flex items-baseline gap-4 mt-2 sm:mt-3">
-              <span className="font-sans font-black uppercase text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight text-white">
+            <div className="flex items-baseline gap-4 sm:gap-8 mt-2 sm:mt-4">
+              <span className="font-sans font-black uppercase text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] xl:text-[11.5rem] tracking-tight text-white">
                 ON THE WEB
               </span>
-              <span className="font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[#B600A8]">
+              <span className="font-black text-5xl sm:text-7xl md:text-9xl lg:text-[10rem] xl:text-[11.5rem] text-[#B600A8]">
                 *
               </span>
+            </div>
+          </div>
+
+          {/* Bottom Bar: Metadata & Scroll Cue */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs font-mono shrink-0">
+            <div className="flex items-center gap-3 text-white/70">
+              <span className="text-[#B600A8] font-bold">HET PATEL</span>
+              <span>•</span>
+              <span>FULL STACK MERN ARCHITECT</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-white/50 uppercase tracking-wider">
+              <span>SCROLL TO EXPLORE ARCHITECT DOSSIER</span>
+              <span className="animate-bounce">&darr;</span>
             </div>
           </div>
         </div>
@@ -265,27 +296,6 @@ export const CurvedAboutSection: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* 4 Stats Grid Bar from CV & Experience */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 pt-12 border-t border-white/10 font-sans">
-            {stats.map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                className="flex flex-col"
-              >
-                <span className="font-sans font-black text-4xl sm:text-5xl md:text-6xl text-white tracking-tight mb-2">
-                  {item.value}
-                </span>
-                <span className="font-mono text-xs sm:text-xs tracking-widest text-white/50 uppercase">
-                  {item.label}
-                </span>
-              </motion.div>
-            ))}
           </div>
         </div>
       </div>

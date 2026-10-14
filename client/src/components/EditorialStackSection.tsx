@@ -67,8 +67,8 @@ export const EditorialStackSection: React.FC = () => {
             <span className="font-sans font-black uppercase text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-[#111111]">
               THE TOOLS
             </span>
-            <span className="font-serif italic font-normal text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[#111111]">
-              I THINK IN.
+            <span className="font-serif italic font-normal text-5xl sm:text-7xl md:text-8xl lg:text-9xl text-[#111111] capitalize">
+              I Think In.
             </span>
           </div>
 

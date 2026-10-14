@@ -4,7 +4,9 @@ import { CraftingIntroSection } from './components/CraftingIntroSection';
 import { CurvedAboutSection } from './components/CurvedAboutSection';
 import { FeaturedWorkShowcase } from './components/FeaturedWorkShowcase';
 import { EditorialStackSection } from './components/EditorialStackSection';
-import { EditorialReviewsSection } from './components/EditorialReviewsSection';
+import { EditorialExperienceSection } from './components/EditorialExperienceSection';
+import { EditorialFreelanceSection } from './components/EditorialFreelanceSection';
+import { ContactMarqueeTicker } from './components/ContactMarqueeTicker';
 import { EditorialContactFooter } from './components/EditorialContactFooter';
 import { ContactModal } from './components/ContactModal';
 import { PricingModal } from './components/PricingModal';
@@ -54,10 +56,21 @@ export const App: React.FC = () => {
       {/* 5. "THE TOOLS I THINK IN." STACK SECTION (FRAME 180 - 200) */}
       <EditorialStackSection />
 
-      {/* 6. "WHAT PEOPLE SAY ABOUT MY WORK." TESTIMONIALS (FRAME 200 - 260) */}
-      <EditorialReviewsSection />
+      {/* 6. VERIFIED CLIENT REVIEWS & DELIVERIES (MADE IN LAST 6 MONTHS • AHMEDABAD, GUJARAT) */}
+      <EditorialExperienceSection />
 
-      {/* 7. CONTACT TICKER & "GET IN TOUCH" FOOTER WITH LIVE IST CLOCK (FRAME 260 - 300) */}
+      {/* 7. OPEN FOR FREELANCE & CONTRACT ENGINEERING (EDITORIAL DARK LUXURY) */}
+      <EditorialFreelanceSection
+        onOpenContact={handleOpenContact}
+        onOpenPrice={() => setIsPricingOpen(true)}
+      />
+
+      {/* CONTACT TEXT SCROLLING MARQUEE TICKER (BETWEEN LAST SECTION AND FOOTER) */}
+      <ContactMarqueeTicker
+        onOpenContact={() => handleOpenContact('General Project Inquiry')}
+      />
+
+      {/* 8. CONTACT TICKER & "GET IN TOUCH" FOOTER WITH LIVE IST CLOCK (FRAME 260 - 300) */}
       <EditorialContactFooter
         onOpenContact={handleOpenContact}
       />

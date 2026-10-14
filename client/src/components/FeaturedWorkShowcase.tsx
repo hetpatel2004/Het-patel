@@ -130,9 +130,10 @@ export const FeaturedWorkShowcase: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      id="work"
-      className="relative z-20 w-full h-[520vh] bg-[#000000] select-none"
+      id="projects"
+      className="relative z-20 w-full h-[540vh] bg-[#000000] select-none"
     >
+      <div id="work" className="sr-only pointer-events-none" aria-hidden="true" />
       {/* STICKY FULLSCREEN VIEWPORT STAGE */}
       <div className="sticky top-0 h-screen min-h-[100dvh] w-full overflow-hidden bg-[#0A0A0E] text-white">
 
@@ -150,10 +151,10 @@ export const FeaturedWorkShowcase: React.FC = () => {
             <img
               src={deployedProjects[0].landingImg}
               alt={deployedProjects[0].title}
-              className="w-full h-full object-cover object-top filter brightness-[0.34] contrast-105 scale-105"
+              className="w-full h-full object-cover object-top filter brightness-[0.42] contrast-105 scale-105"
             />
             {/* Dark Vignettes & Radial Glow */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/70 pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/85 pointer-events-none" />
             <div
               className="absolute inset-0 pointer-events-none opacity-30"
@@ -193,10 +194,10 @@ export const FeaturedWorkShowcase: React.FC = () => {
               <img
                 src={deployedProjects[1].landingImg}
                 alt={deployedProjects[1].title}
-                className="w-full h-full object-cover object-top filter brightness-[0.32] contrast-105 scale-105"
+                className="w-full h-full object-cover object-top filter brightness-[0.40] contrast-105 scale-105"
               />
               {/* Dark Vignettes & Radial Glow */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/80 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/70 pointer-events-none" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/85 pointer-events-none" />
               <div
                 className="absolute inset-0 pointer-events-none opacity-30"
@@ -239,10 +240,10 @@ export const FeaturedWorkShowcase: React.FC = () => {
             <img
               src={deployedProjects[2].landingImg}
               alt={deployedProjects[2].title}
-              className="w-full h-full object-cover object-top filter brightness-[0.32] contrast-105 scale-105"
+              className="w-full h-full object-cover object-top filter brightness-[0.40] contrast-105 scale-105"
             />
             {/* Dark Vignettes & Radial Glow */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/70 pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/85 pointer-events-none" />
             <div
               className="absolute inset-0 pointer-events-none opacity-30"
@@ -285,9 +286,9 @@ const ProjectDetailsContent: React.FC<ProjectDetailsProps> = ({
   onSelectProject,
 }) => {
   return (
-    <div className="relative z-10 w-full h-full flex flex-col justify-between max-w-7xl mx-auto px-4 sm:px-8 md:px-12 lg:px-16 py-3 sm:py-4 md:py-6">
+    <div className="relative z-20 w-full h-full flex flex-col justify-between max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4">
       {/* Top Header Row: Project Badge, Live Indicator, Clickable Live Domain Badge */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 border-b border-white/10 pb-2 sm:pb-3 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 border-b border-white/10 pb-2 sm:pb-2.5 shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[11px] sm:text-xs font-mono tracking-wider text-white/90 flex items-center gap-2">
             <span
@@ -316,35 +317,35 @@ const ProjectDetailsContent: React.FC<ProjectDetailsProps> = ({
         </a>
       </div>
 
-      {/* Main Content Grid in Front of Background Image */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-10 items-center my-auto py-1 sm:py-2">
-        {/* Left Column: Category, Massive Title, Subtitle, Description, Tech Tags, Buttons */}
-        <div className="lg:col-span-7 flex flex-col justify-center">
+      {/* Main Content Grid in Front of Background Image - BALANCED COLUMNS WITH BREATHING ROOM */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-center my-auto py-1 sm:py-2">
+        {/* Left Column: Category, Title, Subtitle, Description, Tech Tags, Buttons (6 cols) */}
+        <div className="lg:col-span-6 flex flex-col justify-center">
           <span
-            className="font-mono text-[11px] sm:text-xs uppercase tracking-widest font-bold mb-1 sm:mb-1.5 flex items-center gap-2"
+            className="font-mono text-[10px] sm:text-xs uppercase tracking-widest font-bold mb-1 flex items-center gap-2"
             style={{ color: project.accentColor }}
           >
             <span>{project.category}</span>
           </span>
 
-          <h3 className="font-sans font-black uppercase text-2xl sm:text-4xl md:text-5xl lg:text-[3.25rem] text-white tracking-tight leading-[1.04] drop-shadow-lg mb-1 sm:mb-2">
+          <h3 className="font-sans font-black uppercase text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] text-white tracking-tight leading-[1.06] drop-shadow-lg mb-1">
             {project.title}
           </h3>
 
-          <p className="font-serif italic text-sm sm:text-lg md:text-xl text-white/85 mb-2 leading-snug">
+          <p className="font-caveat font-semibold text-sm sm:text-base md:text-lg text-[#F3F4F6] mb-1.5 tracking-wide leading-snug">
             {project.subtitle}
           </p>
 
-          <p className="font-sans font-light text-xs sm:text-sm md:text-[15px] text-white/80 leading-relaxed mb-3 sm:mb-4 max-w-2xl drop-shadow-sm">
+          <p className="font-sans font-light text-xs sm:text-[13px] md:text-sm text-white/80 leading-relaxed mb-2.5 sm:mb-3 max-w-xl drop-shadow-sm line-clamp-3 sm:line-clamp-4">
             {project.description}
           </p>
 
           {/* Tech Stack Pills */}
-          <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3.5 sm:mb-5">
+          <div className="flex flex-wrap gap-1.5 mb-3 sm:mb-4">
             {project.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-white/5 border border-white/15 text-white/90 font-mono text-[11px] sm:text-xs hover:border-white/40 transition-colors"
+                className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/90 font-mono text-[10px] sm:text-[11px] hover:border-white/40 transition-colors"
               >
                 {tag}
               </span>
@@ -352,72 +353,72 @@ const ProjectDetailsContent: React.FC<ProjectDetailsProps> = ({
           </div>
 
           {/* Action Buttons: Live Deployment (Primary Glowing) & GitHub (Secondary) */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <a
               href={project.liveUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-black font-mono font-bold text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 shadow-xl cursor-pointer hover:scale-105"
+              className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-black font-mono font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-xl cursor-pointer hover:scale-105"
               style={{
                 backgroundColor: project.accentColor,
                 boxShadow: `0 8px 24px ${project.accentGlow}`,
               }}
             >
-              <Globe className="w-4 h-4" />
+              <Globe className="w-3.5 h-3.5" />
               <span>VISIT LIVE DEPLOYMENT</span>
-              <ArrowUpRight className="w-4 h-4" />
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
 
             <a
               href={project.githubUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-mono font-bold text-xs sm:text-sm uppercase tracking-wider transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
             >
-              <GithubIcon className="w-4 h-4" />
+              <GithubIcon className="w-3.5 h-3.5" />
               <span>GITHUB REPO</span>
-              <ArrowUpRight className="w-4 h-4" />
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>
 
-        {/* Right Column: Simulated Interactive Browser Preview Mockup */}
-        <div className="lg:col-span-5 flex items-center justify-center">
+        {/* Right Column: Simulated Interactive Browser Preview Mockup (6 cols) */}
+        <div className="lg:col-span-6 flex items-center justify-center">
           <a
             href={project.liveUrl}
             target="_blank"
             rel="noreferrer"
             title={`Open ${project.title} live in new tab`}
-            className="w-full max-w-xs sm:max-w-sm lg:max-w-md rounded-2xl border border-white/25 bg-[#0E0F14]/90 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden group cursor-pointer transition-all duration-500 hover:border-white/50 hover:shadow-[0_20px_60px_rgba(0,0,0,0.9)] hover:scale-[1.02]"
+            className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl rounded-2xl border border-white/30 bg-[#0E0F14]/95 backdrop-blur-2xl shadow-[0_25px_70px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden group cursor-pointer transition-all duration-500 hover:border-white/60 hover:scale-[1.02]"
           >
             {/* Simulated Browser Chrome Bar */}
-            <div className="px-3.5 py-1.5 sm:py-2 bg-[#16171F] border-b border-white/15 flex items-center justify-between gap-3 select-none">
+            <div className="px-3.5 py-1.5 bg-[#16171F] border-b border-white/15 flex items-center justify-between gap-3 select-none">
               <div className="flex items-center gap-1.5">
-                <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-red-500/80 inline-block" />
-                <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-amber-500/80 inline-block" />
-                <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+                <span className="w-2 h-2 rounded-full bg-red-500/80 inline-block" />
+                <span className="w-2 h-2 rounded-full bg-amber-500/80 inline-block" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500/80 inline-block" />
               </div>
               <div className="flex-1 px-2 py-0.5 rounded-full bg-black/60 border border-white/10 flex items-center justify-between text-[10px] sm:text-[11px] font-mono text-white/70 truncate">
                 <span className="truncate">{project.liveUrl}</span>
-                <ExternalLink className="w-2 sm:w-2.5 h-2 sm:h-2.5 text-white/40 shrink-0 ml-1" />
+                <ExternalLink className="w-2.5 h-2.5 text-white/40 shrink-0 ml-1" />
               </div>
             </div>
 
             {/* Browser Viewport with Landing Screenshot */}
-            <div className="relative aspect-[16/10] max-h-[220px] sm:max-h-[260px] w-full overflow-hidden bg-black">
+            <div className="relative aspect-[16/10] max-h-[220px] sm:max-h-[260px] md:max-h-[290px] lg:max-h-[320px] w-full overflow-hidden bg-black">
               <img
                 src={project.landingImg}
                 alt={project.title}
-                className="w-full h-full object-cover object-top filter brightness-95 group-hover:brightness-105 group-hover:scale-105 transition-all duration-500"
+                className="w-full h-full object-cover object-top filter brightness-[0.98] group-hover:brightness-105 group-hover:scale-105 transition-all duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-              <div className="absolute bottom-2.5 right-2.5">
+              <div className="absolute bottom-2.5 right-2.5 flex items-center gap-2">
                 <span
-                  className="px-2.5 py-1 rounded-full text-black font-mono font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-lg transition-transform group-hover:scale-105"
+                  className="px-2.5 py-1 rounded-full text-black font-mono font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shadow-xl transition-transform group-hover:scale-105"
                   style={{ backgroundColor: project.accentColor }}
                 >
                   <Globe className="w-3 h-3" />
-                  <span>CLICK TO LAUNCH</span>
+                  <span>CLICK TO LAUNCH LIVE</span>
                   <ArrowUpRight className="w-3 h-3" />
                 </span>
               </div>
@@ -426,17 +427,17 @@ const ProjectDetailsContent: React.FC<ProjectDetailsProps> = ({
         </div>
       </div>
 
-      {/* Bottom Bar: Quick Project Switcher Pills & Scroll Cue */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 sm:pt-3 border-t border-white/10 text-[11px] sm:text-xs font-mono uppercase tracking-wider shrink-0">
-        <div className="flex items-center gap-2">
+      {/* Bottom Bar: High-contrast Frosted Glass Pills (Immune to Vignette & Cutoff) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 pb-1 border-t border-white/15 text-[11px] sm:text-xs font-mono uppercase tracking-wider shrink-0 z-30">
+        <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15 shadow-md">
           {deployedProjects.map((p, idx) => (
             <button
               key={p.index}
               onClick={() => onSelectProject(idx)}
-              className={`px-3 py-1 rounded-full font-mono text-[11px] sm:text-xs tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-2.5 py-0.5 rounded-full font-mono text-[11px] sm:text-xs tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
                 activePhase === idx
-                  ? 'bg-white text-black font-bold shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-105'
-                  : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+                  ? 'bg-white text-black font-bold shadow-[0_0_12px_rgba(255,255,255,0.4)] scale-105'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
               }`}
             >
               <span
@@ -444,14 +445,14 @@ const ProjectDetailsContent: React.FC<ProjectDetailsProps> = ({
                 style={{ backgroundColor: p.accentColor }}
               />
               <span>{p.index}</span>
-              <span className="hidden sm:inline opacity-70">| {p.title.split(' ')[0]}</span>
+              <span className="hidden sm:inline opacity-80">| {p.title.split(' ')[0]}</span>
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-2 text-white/50 text-[11px] sm:text-xs">
-          <span>SCROLL TO REVEAL NEXT PROJECT</span>
-          <span className="animate-bounce">&darr;</span>
+        <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-white/80 text-[11px] shadow-md">
+          <span>SCROLL TO NEXT PROJECT</span>
+          <span className="animate-bounce text-white">&darr;</span>
         </div>
       </div>
     </div>

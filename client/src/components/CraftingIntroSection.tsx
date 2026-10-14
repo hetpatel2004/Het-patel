@@ -72,14 +72,14 @@ export const CraftingIntroSection: React.FC = () => {
 
       {/* Main Massive Editorial Typography */}
       <div className="relative z-10 my-auto py-6 sm:py-8 flex flex-col justify-center items-center text-center">
-        {/* Row 1: CRAFTING (Italic Serif Playfair Display) */}
+        {/* Row 1: Crafting (Flowing Cursive Script) */}
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="font-serif italic font-normal tracking-tight leading-[0.9] text-[clamp(3.2rem,12.5vw,9rem)] text-[#111111]"
+          className="font-serif italic font-normal tracking-wide leading-[1.0] text-[clamp(4.2rem,15vw,10.5rem)] text-[#111111] capitalize"
         >
-          CRAFTING
+          Crafting
         </motion.h1>
 
         {/* Row 2: DIGITAL * (Bold Grotesque Sans Kanit with Rotating Asterisk) */}
