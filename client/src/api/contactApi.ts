@@ -8,7 +8,14 @@ export interface ContactFormData {
   message: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const resolveApiBase = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl || !envUrl.trim()) return '/api';
+  const trimmed = envUrl.trim().replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_BASE_URL = resolveApiBase();
 
 export const sendContactMessage = async (data: ContactFormData) => {
   try {

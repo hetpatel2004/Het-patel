@@ -1,6 +1,13 @@
 // API client service with local fallback for offline/standalone resilience
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const resolveApiBase = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl || !envUrl.trim()) return '/api';
+  const trimmed = envUrl.trim().replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_BASE = resolveApiBase();
 
 export interface ProfileData {
   name: string;

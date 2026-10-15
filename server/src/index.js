@@ -40,7 +40,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Database connection (graceful fallback if MongoDB isn't running)
 connectDB();
 
-// API Routes
+// API Routes (canonical /api/*)
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/projects', projectRoutes);
@@ -48,8 +48,16 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/services', serviceRoutes);
 
+// Root Route Fallbacks (resilience if client VITE_API_URL omits /api)
+app.use('/auth', authRoutes);
+app.use('/profile', profileRoutes);
+app.use('/projects', projectRoutes);
+app.use('/skills', skillRoutes);
+app.use('/contact', contactRoutes);
+app.use('/services', serviceRoutes);
+
 // Health check
-app.get('/api/health', (req, res) => {
+const sendHealth = (req, res) => {
   res.status(200).json({
     status: 'online',
     app: 'Het Patel - Full Stack MERN Portfolio Backend API',
@@ -64,13 +72,26 @@ app.get('/api/health', (req, res) => {
     ],
     timestamp: new Date().toISOString(),
   });
-});
+};
+app.get('/api/health', sendHealth);
+app.get('/health', sendHealth);
 
 // Serve static client assets in production if client build exists
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) {
+    // Never intercept API and backend route paths
+    const isBackendRoute =
+      req.path.startsWith('/api') ||
+      req.path.startsWith('/skills') ||
+      req.path.startsWith('/profile') ||
+      req.path.startsWith('/projects') ||
+      req.path.startsWith('/contact') ||
+      req.path.startsWith('/services') ||
+      req.path.startsWith('/auth') ||
+      req.path.startsWith('/health');
+
+    if (isBackendRoute) {
       return next();
     }
     res.sendFile(path.join(clientDistPath, 'index.html'));
