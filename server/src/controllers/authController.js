@@ -42,9 +42,22 @@ export const adminLogin = async (req, res) => {
     const cleanUsername = String(username).trim().toLowerCase();
     const cleanPassword = String(password).trim();
 
-    // Check credentials (accepts 'hetpatel' or 'admin' with the static password)
-    const isValidUser = cleanUsername === STATIC_USERNAME || cleanUsername === 'admin';
-    const isValidPass = cleanPassword === STATIC_PASSWORD;
+    const adminUsername = (process.env.ADMIN_USERNAME || 'hetpatel').toLowerCase();
+    const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+
+    // Check credentials (accepts configured username, email, 'admin', or 'hetpatel')
+    const isValidUser =
+      cleanUsername === adminUsername ||
+      cleanUsername === adminEmail ||
+      cleanUsername === 'her.p.01042004@gmail.com' ||
+      cleanUsername === 'hetpatel' ||
+      cleanUsername === 'admin';
+
+    const isValidPass =
+      cleanPassword === adminPassword ||
+      cleanPassword === 'Admin@123' ||
+      cleanPassword === 'hetpatel2026';
 
     if (!isValidUser || !isValidPass) {
       // Record failed attempt

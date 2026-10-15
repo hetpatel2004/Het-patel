@@ -74,6 +74,7 @@ export const createContact = async (req, res) => {
         await Contact.create({
           name: inquiryRecord.name,
           email: inquiryRecord.email,
+          phone: inquiryRecord.phone || '',
           service: inquiryRecord.service,
           budget: inquiryRecord.budget,
           timeline: inquiryRecord.timeline,
@@ -100,6 +101,34 @@ export const createContact = async (req, res) => {
 
 export const getContacts = async (req, res) => {
   try {
+    const { connected } = getDbStatus();
+    if (connected) {
+      try {
+        const dbContacts = await Contact.find().sort({ createdAt: -1 });
+        if (dbContacts && dbContacts.length > 0) {
+          return res.status(200).json({
+            success: true,
+            count: dbContacts.length,
+            data: dbContacts.map((c) => ({
+              id: c._id.toString(),
+              name: c.name,
+              email: c.email,
+              phone: c.phone || '',
+              service: c.service || 'General Inquiry',
+              budget: c.budget || 'Not specified',
+              timeline: c.timeline || 'Flexible',
+              message: c.message,
+              status: c.status || 'new',
+              notes: c.notes || '',
+              submittedAt: c.createdAt ? c.createdAt.toISOString() : new Date().toISOString(),
+            })),
+          });
+        }
+      } catch (dbErr) {
+        console.warn('[MongoDB Contact Fetch Warning]', dbErr.message);
+      }
+    }
+
     const inquiries = getAllInquiries();
     return res.status(200).json({
       success: true,
@@ -115,20 +144,29 @@ export const getContacts = async (req, res) => {
 export const changeContactStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, notes } = req.body;
     if (!status) {
       return res.status(400).json({ success: false, error: 'Status is required' });
     }
 
     const updated = updateInquiryStatus(id, status);
-    if (!updated) {
-      return res.status(404).json({ success: false, error: 'Inquiry not found' });
+
+    const { connected } = getDbStatus();
+    if (connected) {
+      try {
+        await Contact.findByIdAndUpdate(id, {
+          status,
+          ...(notes !== undefined ? { notes } : {}),
+        });
+      } catch {
+        // ID may belong to local JSON fallback store
+      }
     }
 
     return res.status(200).json({
       success: true,
       message: `Inquiry status updated to ${status}`,
-      data: updated,
+      data: updated || { id, status },
     });
   } catch (error) {
     console.error('Error updating inquiry status:', error);
@@ -139,9 +177,15 @@ export const changeContactStatus = async (req, res) => {
 export const removeContact = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = deleteInquiry(id);
-    if (!deleted) {
-      return res.status(404).json({ success: false, error: 'Inquiry not found' });
+    deleteInquiry(id);
+
+    const { connected } = getDbStatus();
+    if (connected) {
+      try {
+        await Contact.findByIdAndDelete(id);
+      } catch {
+        // ID may belong to local JSON fallback store
+      }
     }
 
     return res.status(200).json({

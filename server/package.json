@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "het-patel-portfolio-server",
   "version": "1.0.0",
-  "description": "Backend API for Jack - 3D Creator Portfolio (MERN Stack)",
+  "description": "Backend API for Het Patel - Full Stack MERN Developer Portfolio",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

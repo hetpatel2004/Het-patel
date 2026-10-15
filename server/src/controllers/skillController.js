@@ -5,9 +5,33 @@ import {
   deleteSkill,
   addSkillCategory,
 } from '../data/dbStore.js';
+import Skill from '../models/Skill.js';
+import { getDbStatus } from '../config/db.js';
 
 export const getSkills = async (req, res) => {
   try {
+    const { connected } = getDbStatus();
+    if (connected) {
+      try {
+        const dbSkills = await Skill.find().sort({ createdAt: 1 });
+        if (dbSkills && dbSkills.length > 0) {
+          const mapped = dbSkills.map((s, idx) => ({
+            id: s._id.toString(),
+            category: s.category,
+            shortLabel: s.shortLabel || `0${idx + 1}`,
+            skills: s.skills || [],
+          }));
+          return res.status(200).json({
+            success: true,
+            count: mapped.length,
+            data: mapped,
+          });
+        }
+      } catch (dbErr) {
+        console.warn('[MongoDB Skill Fetch Warning]', dbErr.message);
+      }
+    }
+
     const groups = getSkillGroups();
     return res.status(200).json({
       success: true,
@@ -27,13 +51,20 @@ export const addNewSkill = async (req, res) => {
       return res.status(400).json({ success: false, message: 'categoryId and skillName are required' });
     }
     const updatedGroup = addSkill(categoryId, skillName);
-    if (!updatedGroup) {
-      return res.status(404).json({ success: false, message: 'Category not found' });
+
+    const { connected } = getDbStatus();
+    if (connected) {
+      try {
+        await Skill.findByIdAndUpdate(categoryId, { $addToSet: { skills: skillName } });
+      } catch {
+        // categoryId may be from local store
+      }
     }
+
     return res.status(200).json({
       success: true,
       message: 'Skill added successfully',
-      data: updatedGroup,
+      data: updatedGroup || { categoryId, skillName },
     });
   } catch (error) {
     console.error('Error adding skill:', error);
@@ -48,13 +79,23 @@ export const editSkill = async (req, res) => {
       return res.status(400).json({ success: false, message: 'categoryId, oldSkillName, and newSkillName are required' });
     }
     const updatedGroup = updateSkill(categoryId, oldSkillName, newSkillName);
-    if (!updatedGroup) {
-      return res.status(404).json({ success: false, message: 'Skill or category not found' });
+
+    const { connected } = getDbStatus();
+    if (connected) {
+      try {
+        await Skill.findOneAndUpdate(
+          { _id: categoryId, skills: oldSkillName },
+          { $set: { 'skills.$': newSkillName } }
+        );
+      } catch {
+        // categoryId may be from local store
+      }
     }
+
     return res.status(200).json({
       success: true,
       message: 'Skill updated successfully',
-      data: updatedGroup,
+      data: updatedGroup || { categoryId, newSkillName },
     });
   } catch (error) {
     console.error('Error updating skill:', error);
@@ -69,13 +110,20 @@ export const removeSkill = async (req, res) => {
       return res.status(400).json({ success: false, message: 'categoryId and skillName are required' });
     }
     const updatedGroup = deleteSkill(categoryId, skillName);
-    if (!updatedGroup) {
-      return res.status(404).json({ success: false, message: 'Category not found' });
+
+    const { connected } = getDbStatus();
+    if (connected) {
+      try {
+        await Skill.findByIdAndUpdate(categoryId, { $pull: { skills: skillName } });
+      } catch {
+        // categoryId may be from local store
+      }
     }
+
     return res.status(200).json({
       success: true,
       message: 'Skill deleted successfully',
-      data: updatedGroup,
+      data: updatedGroup || { categoryId, skillName },
     });
   } catch (error) {
     console.error('Error removing skill:', error);
@@ -90,10 +138,25 @@ export const createCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: 'categoryName is required' });
     }
     const newCategory = addSkillCategory(categoryName, shortLabel);
+
+    const { connected } = getDbStatus();
+    let dbSkill = null;
+    if (connected) {
+      try {
+        dbSkill = await Skill.create({
+          category: categoryName,
+          shortLabel: shortLabel || '',
+          skills: [],
+        });
+      } catch (dbErr) {
+        console.warn('[MongoDB Skill Category Create Warning]', dbErr.message);
+      }
+    }
+
     return res.status(201).json({
       success: true,
       message: 'Category created successfully',
-      data: newCategory,
+      data: dbSkill ? { ...newCategory, id: dbSkill._id.toString() } : newCategory,
     });
   } catch (error) {
     console.error('Error creating category:', error);

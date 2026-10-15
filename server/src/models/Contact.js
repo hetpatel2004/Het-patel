@@ -13,6 +13,11 @@ const contactSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    phone: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     service: {
       type: String,
       default: 'General Inquiry',
@@ -32,8 +37,12 @@ const contactSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['new', 'contacted', 'completed'],
+      enum: ['new', 'contacted', 'replied', 'in_discussion', 'closed', 'completed'],
       default: 'new',
+    },
+    notes: {
+      type: String,
+      default: '',
     },
   },
   {

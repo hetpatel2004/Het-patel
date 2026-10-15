@@ -253,43 +253,5 @@
       ]
     }
   ],
-  "inquiries": [
-    {
-      "id": "inq-1792051653359",
-      "name": "Elena Rostova",
-      "email": "elena@techstart.io",
-      "phone": "+91 98765 43210",
-      "service": "Full-Stack Web App",
-      "budget": ",500 - ,000",
-      "timeline": "3-4 Weeks",
-      "message": "Hi Het, we love your portfolio projects! We want you to architect our SaaS MVP.",
-      "status": "replied",
-      "createdAt": "2026-10-15T08:07:33.359Z",
-      "updatedAt": "2026-10-15T08:08:05.582Z"
-    },
-    {
-      "id": "inq-1",
-      "name": "Visat Patel",
-      "email": "visat.patel@ambikaelectric.com",
-      "phone": "+91 98250 12345",
-      "service": "Custom Web Platform",
-      "budget": "₹50,000 - ₹1,00,000",
-      "timeline": "2-4 weeks",
-      "message": "We loved the Ambika Electric portal. Looking to add automated quotation generation and motor diagnostics module.",
-      "status": "new",
-      "createdAt": "2026-10-13T07:30:05.639Z"
-    },
-    {
-      "id": "inq-2",
-      "name": "Prof. Risha Tiwari",
-      "email": "risha.tiwari@silveroak.edu.in",
-      "phone": "+91 94280 67890",
-      "service": "MERN Stack Web Application",
-      "budget": "Academic Project",
-      "timeline": "1-2 months",
-      "message": "Online Exam system performed very well during the departmental semester tests. We want to discuss v2 features.",
-      "status": "replied",
-      "createdAt": "2026-10-10T07:30:05.640Z"
-    }
-  ]
+  "inquiries": []
 }
