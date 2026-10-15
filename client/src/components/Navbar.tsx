@@ -3,7 +3,7 @@ import { FadeIn } from './FadeIn';
 
 interface NavbarProps {
   onOpenPrice: () => void;
-  onOpenContact: () => void;
+  onOpenContact?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenPrice, onOpenContact }) => {
@@ -59,8 +59,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPrice, onOpenContact }) =>
           </div>
         </button>
 
-        {/* Right Navigation Links: Freelance, Price & Contact */}
-        <div className="flex items-center gap-4 sm:gap-6 md:gap-8 lg:gap-10">
+        {/* Right Navigation Links: Freelance & Price */}
+        <div className="flex items-center gap-5 sm:gap-8 md:gap-12">
           <button
             onClick={() => scrollTo('freelance')}
             className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.35rem] transition-all duration-200 hover:text-white hover:opacity-100 opacity-80 cursor-pointer"
@@ -73,13 +73,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPrice, onOpenContact }) =>
             className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.35rem] transition-all duration-200 hover:text-white hover:opacity-100 opacity-80 cursor-pointer"
           >
             Price
-          </button>
-
-          <button
-            onClick={onOpenContact}
-            className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.35rem] transition-all duration-200 hover:text-white hover:opacity-100 opacity-80 cursor-pointer"
-          >
-            Contact
           </button>
         </div>
       </nav>

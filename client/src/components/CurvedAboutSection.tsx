@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { GraduationCap, Award, MapPin, Calendar, Languages, CheckCircle2 } from 'lucide-react';
+import { apiGetProfile } from '../services/api';
 
 export const CurvedAboutSection: React.FC = () => {
-  const education = [
+  const defaultEducation = [
     {
       degree: 'Master of Science (M.Sc.) in Information Technology',
       institution: 'Silver Oak University, Ahmedabad, Gujarat',
@@ -29,6 +30,18 @@ export const CurvedAboutSection: React.FC = () => {
       badge: 'High School',
     },
   ];
+
+  const [educationList, setEducationList] = useState(defaultEducation);
+
+  useEffect(() => {
+    apiGetProfile()
+      .then((data) => {
+        if (data && data.education && data.education.length > 0) {
+          setEducationList(data.education);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const softSkills = [
     'Leadership & Team Collaboration',
@@ -248,7 +261,7 @@ export const CurvedAboutSection: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              {education.map((edu, idx) => (
+              {educationList.map((edu, idx) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 15 }}

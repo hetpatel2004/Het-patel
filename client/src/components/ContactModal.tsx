@@ -17,6 +17,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     service: initialService,
     budget: 'Standard Project',
     timeline: '2-4 weeks',
@@ -57,6 +58,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     setFormData({
       name: '',
       email: '',
+      phone: '',
       service: initialService,
       budget: 'Standard Project',
       timeline: '2-4 weeks',
@@ -183,6 +185,20 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                         className="w-full px-4 py-3 rounded-2xl bg-[#1A1C23] border border-[#2D313D] text-white placeholder-white/20 text-sm focus:outline-none focus:border-[#BBCCD7] transition-colors"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-[#D7E2EA]/70 mb-1.5 font-medium">
+                      Phone / WhatsApp Number (Optional)
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="e.g. +91 98765 43210"
+                      className="w-full px-4 py-3 rounded-2xl bg-[#1A1C23] border border-[#2D313D] text-white placeholder-white/20 text-sm focus:outline-none focus:border-[#BBCCD7] transition-colors"
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

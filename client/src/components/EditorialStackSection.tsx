@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { technicalSkillsGroups, type SkillCategoryGroup } from '../data/stackData';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -27,12 +27,25 @@ const categoryIcons: Record<string, React.ReactNode> = {
   '10': <Layers className="w-4 h-4 text-indigo-600" />,
 };
 
+import { apiGetSkills } from '../services/api';
+
 export const EditorialStackSection: React.FC = () => {
+  const [skillGroups, setSkillGroups] = useState<SkillCategoryGroup[]>(technicalSkillsGroups);
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
+  useEffect(() => {
+    apiGetSkills()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setSkillGroups(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const categories = [
-    { label: 'All', id: 'All', count: technicalSkillsGroups.length },
-    ...technicalSkillsGroups.map((g) => ({
+    { label: 'All', id: 'All', count: skillGroups.length },
+    ...skillGroups.map((g) => ({
       label: g.shortLabel,
       id: g.id,
       count: g.skills.length,
@@ -41,10 +54,10 @@ export const EditorialStackSection: React.FC = () => {
 
   const displayedGroups: SkillCategoryGroup[] =
     activeCategory === 'All'
-      ? technicalSkillsGroups
-      : technicalSkillsGroups.filter((g) => g.id === activeCategory);
+      ? skillGroups
+      : skillGroups.filter((g) => g.id === activeCategory);
 
-  const totalSkillsCount = technicalSkillsGroups.reduce((acc, g) => acc + g.skills.length, 0);
+  const totalSkillsCount = skillGroups.reduce((acc, g) => acc + g.skills.length, 0);
 
   return (
     <section
