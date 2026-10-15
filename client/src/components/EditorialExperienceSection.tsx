@@ -4,7 +4,6 @@ import {
   MapPin,
   Calendar,
   ArrowUpRight,
-  ExternalLink,
   Star,
   Sparkles,
   ShieldCheck,

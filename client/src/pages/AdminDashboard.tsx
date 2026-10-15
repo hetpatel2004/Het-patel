@@ -12,29 +12,24 @@ import {
   Check,
   Save,
   Globe,
-  MapPin,
   Mail,
   Phone,
   GraduationCap,
-  Sparkles,
-  Layers,
-  ArrowUpRight,
   X,
   AlertCircle,
   Clock,
-  Briefcase,
   ShieldCheck,
   MessageSquare,
   MessageCircle,
-  Filter,
   CheckCircle2,
   Archive,
   Calendar,
   DollarSign,
   Tag,
+  Image as ImageIcon,
+  Upload,
 } from 'lucide-react';
 import {
-  getAuthToken,
   clearAuthToken,
   apiVerifyToken,
   apiGetProfile,
@@ -871,11 +866,25 @@ export const AdminDashboard: React.FC = () => {
                     key={proj.id || proj._id}
                     className="p-6 sm:p-7 rounded-3xl bg-[#111116] border border-white/10 hover:border-white/20 transition-all duration-300 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
                   >
-                    <div className="space-y-2.5 max-w-3xl">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full bg-white/10 font-mono text-xs font-bold text-white">
-                          #{proj.number}
+                    <div className="flex flex-col sm:flex-row items-start gap-5 max-w-3xl flex-1">
+                      {/* Project BG Image Thumbnail */}
+                      <div className="w-full sm:w-36 h-28 sm:h-24 rounded-2xl overflow-hidden border border-white/10 bg-black/60 shrink-0 relative group">
+                        <img
+                          src={proj.landingImg || '/ambika-landing.png'}
+                          alt={proj.title}
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                        <span className="absolute bottom-1.5 left-2 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono text-white/80">
+                          BG IMAGE
                         </span>
+                      </div>
+
+                      <div className="space-y-2.5 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-white/10 font-mono text-xs font-bold text-white">
+                            #{proj.number}
+                          </span>
                         <span
                           className="px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase tracking-wider font-semibold"
                           style={{
@@ -918,6 +927,7 @@ export const AdminDashboard: React.FC = () => {
                         ))}
                       </div>
                     </div>
+                  </div>
 
                     {/* Actions and Links */}
                     <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between gap-3 shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-white/10">
@@ -1474,6 +1484,122 @@ export const AdminDashboard: React.FC = () => {
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white outline-none"
                   />
                 </div>
+              </div>
+
+              {/* Project Background Image (Cover / Screenshot) */}
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-mono uppercase text-white/80 flex items-center gap-1.5 font-bold">
+                    <ImageIcon className="w-3.5 h-3.5 text-[#B600A8]" />
+                    <span>Project Background Image (Cover)</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-white/40">
+                    File Upload, URL, or Presets
+                  </span>
+                </div>
+
+                {/* Input + Upload File Button */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Image URL or Path (e.g. /my-project.png or https://...)"
+                    value={projectForm.landingImg}
+                    onChange={(e) =>
+                      setProjectForm({
+                        ...projectForm,
+                        landingImg: e.target.value,
+                        fullImg: e.target.value,
+                      })
+                    }
+                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-white outline-none focus:border-[#B600A8]"
+                  />
+
+                  {/* Upload Image From PC Button */}
+                  <label className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-mono text-white font-bold cursor-pointer transition-colors shrink-0">
+                    <Upload className="w-3.5 h-3.5 text-[#B600A8]" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            const result = reader.result as string;
+                            setProjectForm((prev) => ({
+                              ...prev,
+                              landingImg: result,
+                              fullImg: result,
+                            }));
+                            showToast('Background image uploaded successfully!');
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+
+                {/* Presets */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  <span className="text-[10px] font-mono text-white/40 mr-1">Presets:</span>
+                  {[
+                    { label: 'Ambika Electric', path: '/ambika-landing.png' },
+                    { label: 'Online Examination', path: '/online-exam-landing.png' },
+                    { label: 'Agricold Connect', path: '/store-harvest-landing.png' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.path}
+                      type="button"
+                      onClick={() =>
+                        setProjectForm((prev) => ({
+                          ...prev,
+                          landingImg: preset.path,
+                          fullImg: preset.path,
+                        }))
+                      }
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-mono transition-all cursor-pointer ${
+                        projectForm.landingImg === preset.path
+                          ? 'bg-[#B600A8] text-white font-bold'
+                          : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Real-time Image Preview */}
+                {projectForm.landingImg && (
+                  <div className="relative mt-2 rounded-xl overflow-hidden border border-white/10 aspect-[16/7] bg-black/60 group">
+                    <img
+                      src={projectForm.landingImg}
+                      alt="Project Background Preview"
+                      className="w-full h-full object-cover object-top opacity-50"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 border border-white/10 text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span>LIVE BG PREVIEW</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setProjectForm((prev) => ({
+                          ...prev,
+                          landingImg: '',
+                          fullImg: '',
+                        }))
+                      }
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/40 text-xs font-mono transition-colors cursor-pointer"
+                      title="Remove Background Image"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

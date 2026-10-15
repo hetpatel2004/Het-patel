@@ -6,7 +6,7 @@ interface NavbarProps {
   onOpenContact?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenPrice, onOpenContact }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenPrice: _onOpenPrice, onOpenContact }) => {
   const scrollTo = (id: string) => {
     const el =
       document.getElementById(id) ||
@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPrice, onOpenContact }) =>
           </div>
         </button>
 
-        {/* Right Navigation Links: Freelance & Price */}
+        {/* Right Navigation Links: Freelance & Contact Me */}
         <div className="flex items-center gap-5 sm:gap-8 md:gap-12">
           <button
             onClick={() => scrollTo('freelance')}
@@ -69,10 +69,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPrice, onOpenContact }) =>
           </button>
 
           <button
-            onClick={onOpenPrice}
+            onClick={() => {
+              if (onOpenContact) {
+                onOpenContact();
+              } else {
+                scrollTo('contact');
+              }
+            }}
             className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.35rem] transition-all duration-200 hover:text-white hover:opacity-100 opacity-80 cursor-pointer"
           >
-            Price
+            Contact Me
           </button>
         </div>
       </nav>

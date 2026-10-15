@@ -49,19 +49,6 @@ export const EditorialContactFooter: React.FC<EditorialContactFooterProps> = ({ 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const marqueeWords = [
-    "LET'S BUILD SOMETHING EXTRAORDINARY",
-    '•',
-    'FULL STACK MERN DEVELOPER',
-    '•',
-    'OPEN FOR HIGH-IMPACT ROLES',
-    '•',
-    'AHMEDABAD, GUJARAT, INDIA',
-    '•',
-    'AVAILABLE FOR WORLDWIDE WORK',
-    '•',
-  ];
-
   return (
     <footer
       id="contact"

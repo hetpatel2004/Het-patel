@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Globe, Layers, Award, CheckCircle } from 'lucide-react';
+import { X, ExternalLink, Globe, Layers, Award } from 'lucide-react';
 import type { ProjectItem } from '../data/projects';
 
 interface LiveProjectModalProps {

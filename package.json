@@ -1,9 +1,11 @@
 {
-  "name": "jack-3d-creator-portfolio-mern",
+  "name": "het-patel-portfolio-mern",
   "version": "1.0.0",
-  "description": "Jack -- 3D Creator Portfolio (MERN Stack: React, TypeScript, Tailwind CSS, Framer Motion, Express, Node.js, MongoDB)",
+  "description": "Het Patel -- Full Stack MERN Developer Portfolio (React, TypeScript, Tailwind CSS, Framer Motion, Express, Node.js, MongoDB)",
+  "type": "module",
   "scripts": {
-    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "postinstall": "npm --prefix client install && npm --prefix server install",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
     "dev:client": "npm --prefix client run dev",
     "dev:server": "node server/src/index.js",
     "dev": "concurrently -k -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"node server/src/index.js\" \"npm --prefix client run dev\"",

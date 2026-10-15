@@ -6,12 +6,9 @@ import {
   Clock,
   ArrowUpRight,
   ShieldCheck,
-  Layers,
   Cpu,
   Sparkles,
   MessageCircle,
-  FileCode,
-  Rocket,
   Lock,
 } from 'lucide-react';
 
@@ -22,7 +19,7 @@ interface EditorialFreelanceSectionProps {
 
 export const EditorialFreelanceSection: React.FC<EditorialFreelanceSectionProps> = ({
   onOpenContact,
-  onOpenPrice,
+  onOpenPrice: _onOpenPrice,
 }) => {
   const freelanceServices = [
     {

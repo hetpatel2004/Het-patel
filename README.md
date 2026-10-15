@@ -1,98 +1,182 @@
-# Jack — 3D Creator Portfolio (MERN Stack)
+# Het Patel — Full Stack MERN Developer Portfolio & CMS
 
-A high-performance, dark-themed 3D Creator portfolio landing page built with **React**, **TypeScript**, **Tailwind CSS**, **Framer Motion**, **Lucide React**, **Express**, **Node.js**, and **MongoDB**.
+A production-ready, dark-aesthetic portfolio and CMS platform built for **Het Patel**, Full Stack MERN Developer. Engineered with **React 19**, **TypeScript**, **Tailwind CSS**, **Framer Motion**, **Express.js**, **Node.js**, and a resilient **Dual-Engine MongoDB / Local Store**.
 
 ---
 
 ## 🌟 Key Features
 
-- **Dark Aesthetic**: Deep `#0C0C0C` background, fluid typography with Google Font **Kanit** (weights 300–900).
-- **Hero Section**:
-  - Massive responsive heading: `"Hi, i'm jack"` with custom linear gradient (`#646973` to `#BBCCD7`).
-  - Centered hero portrait with a mouse-following **`Magnet`** component.
-  - Fluid bottom bar with responsive typography and custom gradient **`ContactButton`**.
-  - Fade-in entrance choreography powered by Framer Motion.
-- **Marquee Section**:
-  - Two rows containing 21 high-res animated GIFs from `motionsites.ai`.
-  - Passive window scroll calculation moving Row 1 to the right and Row 2 to the left.
-  - Tripled elements for seamless infinite scrolling.
-- **About Section**:
-  - Four decorative 3D floating corner icons with individual parallax-entry delays.
-  - Scroll-driven **character-by-character text reveal animation** (`AnimatedText`) from opacity 0.2 to 1.0.
-- **Services Section**:
-  - Clean white `#FFFFFF` contrast block with heavy top rounded corners (`rounded-t-[60px]`).
-  - 5 detailed 3D services with large typographic numbers, titles, and descriptions separated by hairline borders.
-- **Projects Section**:
-  - 3 sticky-stacking project cards (`h-[85vh]`, `useScroll` and `useTransform` scale calculations).
-  - Heavy rounded corners (`rounded-[60px]`) and 2-column image grids.
-  - Interactive ghost `Live Project` button with detailed preview modal.
-- **MERN Stack Backend**:
-  - Express.js REST API with routes for inquiries (`/api/contact`), projects (`/api/projects`), and services (`/api/services`).
-  - Mongoose MongoDB schemas with automatic fallback store.
-  - Real-time contact form modal with direct API integration.
+### 🎨 Visual & Interactive Experience
+- **Dark Aesthetic**: Deep `#0C0C0C` theme, typography using Google Fonts (**Kanit**, **Playfair Display**, **Syne**), and neon accent glows.
+- **Hero Section**: Mouse-following magnetic portrait, entrance choreography, and dual-action resume button (live PDF preview & direct download).
+- **Infinite Marquee**: Dual-row fluid infinite reel featuring 21 high-definition motion frames.
+- **Scroll-Reveal About**: Scroll-driven character-by-character opacity reveal animation (`AnimatedText`).
+- **Horizontal Sliding Project Showcase**: 
+  - Ultra-smooth horizontal slide-in transition from the right (`x: 100% -> 0%`).
+  - Sticky-stacking card presentation with dynamic background customization.
+  - Interactive project detail modal with live project launch links.
+- **Contact Me Modal**: Responsive contact drawer connecting directly to the backend API.
+
+### 🛡️ Private Admin Studio & CMS (`/login`)
+- **Zero Public Footprint**: Invisible to public visitors (no admin buttons or links on public pages). Accessible exclusively via direct URL: `/login`.
+- **Static & Configurable Credentials**: Default `hetpatel` / `hetpatel2026` (customizable via `.env`).
+- **JWT Authentication**: Token expiration, security headers (`nosniff`, `SAMEORIGIN`, `XSS-Protection`), and disabled server fingerprints.
+- **Inquiries Inbox**:
+  - Track visitor interest and project inquiries in real-time.
+  - Lifecycle status badges: `New`, `Contacted`, `In Discussion`, `Closed`.
+  - Direct mailto reply trigger and inquiry notes.
+- **Project CMS**:
+  - Live create, update, and delete projects.
+  - Custom background image upload (file upload, preset gradients, or external URLs).
+  - Metrics tracking and project reordering.
+
+### ⚡ Resilient Dual-Data Engine
+- Connects automatically to **MongoDB Atlas** or local MongoDB.
+- If MongoDB is unavailable or offline, the server automatically falls back to an atomic in-memory/JSON store (`server/data/store.json`), guaranteeing 100% uptime with zero downtime or database crashes.
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-Het_Patel_Portfolio/
-├── package.json               # Root scripts (concurrently running client & server)
-├── server/                    # Node.js + Express + MongoDB backend
-│   ├── package.json
-│   ├── .env
+Het-patel/
+├── .gitignore                 # Root gitignore (clean repository for deployment)
+├── package.json               # Root scripts & unified deployment commands
+├── vercel.json                # Root Vercel SPA configuration
+├── README.md                  # Complete project documentation
+│
+├── client/                    # Frontend (React 19 + TypeScript + Vite)
+│   ├── index.html             # Enhanced SEO, Open Graph & theme tags
+│   ├── package.json           # Frontend dependencies
+│   ├── vite.config.ts         # Vite build configuration & API proxy
+│   ├── vercel.json            # Vercel SPA client rewrite rules
+│   ├── .env.example           # Client environment template
+│   ├── public/
+│   │   ├── _redirects         # Netlify SPA rewrite rules
+│   │   ├── het-patel-resume.pdf # Het Patel's downloadable Resume
+│   │   └── favicon.png
 │   └── src/
-│       ├── index.js           # Server entry point
-│       ├── config/db.js       # MongoDB connection & fallback
-│       ├── models/            # Contact, Project, Service schemas
-│       ├── controllers/       # Business logic & seeders
-│       └── routes/            # REST API endpoints
-└── client/                    # React + Vite + TypeScript + Tailwind
-    ├── package.json
-    ├── tailwind.config.js
-    ├── index.html
+│       ├── main.tsx           # React entry point
+│       ├── App.tsx            # Routes: Home, Admin Studio, Login
+│       ├── components/        # UI components (Hero, Projects, Navbar, etc.)
+│       ├── services/          # API client with dynamic base URL
+│       └── data/              # Initial portfolio dataset
+│
+└── server/                    # Backend API (Node.js + Express)
+    ├── package.json           # Server dependencies & scripts
+    ├── .gitignore             # Backend gitignore
+    ├── .env.example           # Server environment template
+    ├── data/
+    │   └── store.json         # Resilient JSON fallback datastore
     └── src/
-        ├── main.tsx
-        ├── App.tsx
-        ├── index.css
-        ├── api/contactApi.ts  # Backend API client
-        ├── data/              # Projects, services, marquee data
-        └── components/
-            ├── Navbar.tsx
-            ├── HeroSection.tsx
-            ├── MarqueeSection.tsx
-            ├── AboutSection.tsx
-            ├── ServicesSection.tsx
-            ├── ProjectsSection.tsx
-            ├── ContactModal.tsx
-            ├── PricingModal.tsx
-            ├── LiveProjectModal.tsx
-            ├── ContactButton.tsx
-            ├── LiveProjectButton.tsx
-            ├── FadeIn.tsx
-            ├── Magnet.tsx
-            └── AnimatedText.tsx
+        ├── index.js           # Express app, security middleware & static serving
+        ├── config/db.js       # MongoDB connection & status monitor
+        ├── models/            # Mongoose schemas (Contact, Project, Skill, Profile)
+        ├── routes/            # Express REST routes (/api/*)
+        └── controllers/       # Route handlers & database controllers
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Local Development Setup
 
 ### 1. Install Dependencies
 Run from the root directory:
 ```bash
 npm run install:all
 ```
-*(or run `npm install` in root, `client`, and `server`)*
+*(This automatically installs root, client, and server dependencies)*
 
-### 2. Start Development Mode (Full MERN Stack)
+### 2. Configure Environment (Optional for local dev)
+Copy the server environment template:
+```bash
+cp server/.env.example server/.env
+```
+
+### 3. Start Development Servers
 ```bash
 npm run dev
 ```
 - **Frontend**: [http://localhost:5173](http://localhost:5173)
 - **Backend API**: [http://localhost:5000](http://localhost:5000)
+- **Admin Studio Login**: [http://localhost:5173/login](http://localhost:5173/login)
 
-### 3. Build for Production
-```bash
-npm run build
-```
+---
+
+## 🌐 Production Deployment Guides
+
+### Option 1: Unified Full-Stack Single-Origin (Recommended: Render / Railway)
+
+In this setup, Node.js serves both the Express API (`/api/*`) and the compiled React frontend (`client/dist`) from a single domain and port.
+
+#### Deploy on Render (Web Service):
+1. Create a **New Web Service** and connect your GitHub repository.
+2. Configure settings:
+   - **Environment**: `Node`
+   - **Build Command**:
+     ```bash
+     npm run build
+     ```
+   - **Start Command**:
+     ```bash
+     npm start
+     ```
+3. Set **Environment Variables**:
+   - `NODE_ENV`: `production`
+   - `PORT`: `10000` (Render defaults to 10000 or sets this automatically)
+   - `JWT_SECRET`: *(A random 32+ character string)*
+   - `ADMIN_USERNAME`: `hetpatel`
+   - `ADMIN_PASSWORD`: *(Your secure password)*
+   - `MONGODB_URI`: *(Optional: MongoDB Atlas connection string. If omitted, built-in JSON storage will be used automatically)*
+4. Click **Deploy Web Service**.
+
+---
+
+### Option 2: Decoupled Hosting (Vercel Frontend + Render Backend)
+
+Host the client on Vercel's global CDN and the server on Render or Railway.
+
+#### Step 1: Deploy Backend (Render / Railway)
+1. Set Root Directory to `server` (or deploy root with Start Command `node server/src/index.js`).
+2. Build Command: `npm install`.
+3. Set environment variables (`PORT`, `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `MONGODB_URI`).
+4. Note your deployed backend URL: e.g. `https://het-patel-api.onrender.com`.
+
+#### Step 2: Deploy Frontend (Vercel)
+1. Import the repository in [Vercel](https://vercel.com).
+2. Configure project:
+   - **Root Directory**: `client`
+   - **Framework Preset**: `Vite`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+3. Add **Environment Variable**:
+   - `VITE_API_URL`: `https://het-patel-api.onrender.com/api`
+4. Click **Deploy**. Vercel will automatically apply the provided `client/vercel.json` SPA rewrite rules.
+
+---
+
+## 🔐 Admin Studio Credentials & Access
+
+- **Login URL**: Visit `/login` on your deployed site (e.g., `https://your-domain.com/login`).
+- **Default Username**: `hetpatel`
+- **Default Password**: `hetpatel2026`
+- **To change credentials in production**: Simply update the `ADMIN_USERNAME` and `ADMIN_PASSWORD` environment variables in your hosting provider's dashboard.
+
+---
+
+## 📋 Available Root Scripts
+
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Runs both client (Vite) and server (Express) concurrently for development |
+| `npm run dev:client` | Runs only the client development server on port 5173 |
+| `npm run dev:server` | Runs only the Express backend server on port 5000 |
+| `npm run build` | Builds the client for production into `client/dist` |
+| `npm start` | Launches the production Express server (serves API + static client) |
+| `npm run install:all` | Installs dependencies across root, client, and server |
+
+---
+
+## 📄 License
+
+This project is personal intellectual property of **Het Patel**. All rights reserved.

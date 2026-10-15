@@ -5,7 +5,7 @@ interface AboutSectionProps {
   onOpenContact?: () => void;
 }
 
-export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenContact }) => {
+export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenContact: _onOpenContact }) => {
   const stats = [
     { number: '1+', label: 'Years Experience' },
     { number: '12+', label: 'Projects Shipped' },

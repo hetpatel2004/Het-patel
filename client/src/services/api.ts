@@ -1,6 +1,6 @@
 // API client service with local fallback for offline/standalone resilience
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export interface ProfileData {
   name: string;

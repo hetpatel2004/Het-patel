@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff, Sparkles, ArrowLeft } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { apiLogin, apiVerifyToken } from '../services/api';
 
 export const LoginPage: React.FC = () => {
@@ -41,10 +41,10 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleQuickFill = () => {
-    setUsername('hetpatel');
-    setPassword('hetpatel2026');
-  };
+  // const handleQuickFill = () => {
+  //   setUsername('hetpatel');
+  //   setPassword('hetpatel2026');
+  // };
 
   return (
     <div className="min-h-screen w-full bg-[#07070A] text-white flex flex-col justify-between items-center relative overflow-hidden select-none px-4 py-8">
@@ -173,7 +173,7 @@ export const LoginPage: React.FC = () => {
           </form>
 
           {/* Quick Static Credentials Hint Helper */}
-          <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
+          {/* <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
             <span className="font-mono text-[11px]">Static credentials:</span>
             <button
               type="button"
@@ -183,7 +183,7 @@ export const LoginPage: React.FC = () => {
               <Sparkles className="w-3 h-3" />
               <span>Fill: hetpatel / hetpatel2026</span>
             </button>
-          </div>
+          </div> */}
         </div>
       </main>
 

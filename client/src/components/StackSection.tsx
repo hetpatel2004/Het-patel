@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { skillsData, type SkillItem } from '../data/stackData';
+import { skillsData } from '../data/stackData';
 import { FadeIn } from './FadeIn';
 
 export const StackSection: React.FC = () => {

@@ -1,7 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import { ArrowUpRight, Globe, Lock, ExternalLink } from 'lucide-react';
 import { GithubIcon } from './SocialIcons';
+import { apiGetProjects } from '../services/api';
 
 export interface DeployedProject {
   index: string;
@@ -74,8 +75,40 @@ const deployedProjects: DeployedProject[] = [
 export const FeaturedWorkShowcase: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activePhase, setActivePhase] = useState<number>(0);
+  const [projectList, setProjectList] = useState<DeployedProject[]>(deployedProjects);
 
-  // Track scroll through the whole 3-project showcase container
+  // Sync projects dynamically from API / database
+  useEffect(() => {
+    apiGetProjects()
+      .then((data) => {
+        if (data && data.length > 0) {
+          const mapped: DeployedProject[] = data.map((p, idx) => ({
+            index: `${idx + 1}/${data.length}`,
+            num: p.number || String(idx + 1).padStart(2, '0'),
+            title: p.title,
+            subtitle: p.subtitle || '',
+            domain: p.domain || (p.liveUrl ? p.liveUrl.replace(/https?:\/\//, '').replace(/\/$/, '') : ''),
+            category: p.category || 'Live Production Deployment',
+            description: p.description || '',
+            tags: Array.isArray(p.tags) ? p.tags : [],
+            landingImg: p.landingImg || '/ambika-landing.png',
+            fullImg: p.fullImg || p.landingImg || '/ambika-full.png',
+            liveUrl: p.liveUrl || '#',
+            githubUrl: p.githubUrl || 'https://github.com/hetpatel2004',
+            accentColor: p.accentColor || '#B600A8',
+            accentGlow: `${p.accentColor || '#B600A8'}66`,
+          }));
+          setProjectList(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const p1 = projectList[0] || deployedProjects[0];
+  const p2 = projectList[1] || deployedProjects[1];
+  const p3 = projectList[2] || deployedProjects[2];
+
+  // Track scroll through the whole showcase container
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end'],
@@ -93,24 +126,22 @@ export const FeaturedWorkShowcase: React.FC = () => {
   });
 
   // PROJECT 1 (AMBIKA ELECTRIC) EXIT ANIMATION:
-  // Dims smoothly as Project 2 rises (GPU-accelerated opacity)
-  const p1Opacity = useTransform(scrollYProgress, [0.18, 0.38], [1, 0.35]);
+  // Parallaxes slightly left (-20%) and dims smoothly as Project 2 sweeps in from the right
+  const p1X = useTransform(scrollYProgress, [0.18, 0.40], ['0%', '-20%']);
+  const p1Opacity = useTransform(scrollYProgress, [0.18, 0.40], [1, 0.25]);
 
   // PROJECT 2 (ONLINE EXAMINATION SYSTEM) ANIMATION:
-  // Background card comes up smoothly (y: 100% -> 0%)
-  const p2BgY = useTransform(scrollYProgress, [0.18, 0.38], ['100%', '0%']);
-  // Details slide in with subtle 24px translation and fade
-  const p2DetailsX = useTransform(scrollYProgress, [0.22, 0.40], [24, 0]);
-  const p2DetailsOpacity = useTransform(scrollYProgress, [0.22, 0.36], [0, 1]);
-  // Dims as Project 3 rises
-  const p2Opacity = useTransform(scrollYProgress, [0.55, 0.75], [1, 0.35]);
+  // Sweeps in from the RIGHT (x: 100% -> 0%), rests in place, then slides left (-20%) as Project 3 sweeps in
+  const p2CardX = useTransform(
+    scrollYProgress,
+    [0.18, 0.40, 0.55, 0.77],
+    ['100%', '0%', '0%', '-20%']
+  );
+  const p2Opacity = useTransform(scrollYProgress, [0.55, 0.77], [1, 0.25]);
 
   // PROJECT 3 (AGRICOLD CONNECT) ANIMATION:
-  // Background card comes up smoothly (y: 100% -> 0%)
-  const p3BgY = useTransform(scrollYProgress, [0.55, 0.75], ['100%', '0%']);
-  // Details slide in with subtle 24px translation and fade
-  const p3DetailsX = useTransform(scrollYProgress, [0.58, 0.78], [24, 0]);
-  const p3DetailsOpacity = useTransform(scrollYProgress, [0.58, 0.74], [0, 1]);
+  // Sweeps in from the RIGHT (x: 100% -> 0%)
+  const p3CardX = useTransform(scrollYProgress, [0.55, 0.77], ['100%', '0%']);
 
   // Smooth scroll to project phase when clicking indicator
   const scrollToProject = (index: number) => {
@@ -126,7 +157,7 @@ export const FeaturedWorkShowcase: React.FC = () => {
   };
 
   const handleNextProject = () => {
-    if (activePhase < deployedProjects.length - 1) {
+    if (activePhase < projectList.length - 1) {
       scrollToProject(activePhase + 1);
     }
   };
@@ -148,19 +179,18 @@ export const FeaturedWorkShowcase: React.FC = () => {
       <div className="sticky top-0 h-screen min-h-[100dvh] w-full overflow-hidden bg-[#0A0A0E] text-white">
 
         {/* =========================================================================
-            PROJECT 1: AMBIKA ELECTRIC (Base Layer - z-10)
-            Stays sticky while Project 2's background comes from down.
-            Given extensive scroll runway so user has plenty of reading time!
+            PROJECT 1 (Base Layer - z-10)
+            Parallaxes left as Project 2 sweeps in from the right.
            ========================================================================= */}
         <motion.div
-          style={{ opacity: p1Opacity, willChange: 'opacity' }}
-          className="absolute inset-0 w-full h-full z-10 overflow-hidden transform-gpu"
+          style={{ x: p1X, opacity: p1Opacity, willChange: 'transform, opacity' }}
+          className="absolute inset-0 w-full h-full z-10 overflow-hidden bg-[#0A0A0E] transform-gpu"
         >
           {/* Project 1 Background Image */}
           <div className="absolute inset-0 w-full h-full overflow-hidden">
             <img
-              src={deployedProjects[0].landingImg}
-              alt={deployedProjects[0].title}
+              src={p1.landingImg}
+              alt={p1.title}
               className="w-full h-full object-cover object-top opacity-35 select-none"
               loading="eager"
             />
@@ -170,14 +200,15 @@ export const FeaturedWorkShowcase: React.FC = () => {
             <div
               className="absolute inset-0 pointer-events-none opacity-30"
               style={{
-                background: `radial-gradient(circle at 75% 35%, ${deployedProjects[0].accentColor}, transparent 65%)`,
+                background: `radial-gradient(circle at 75% 35%, ${p1.accentColor}, transparent 65%)`,
               }}
             />
           </div>
 
           {/* Project 1 Details in Front */}
           <ProjectDetailsContent
-            project={deployedProjects[0]}
+            project={p1}
+            projectList={projectList}
             activePhase={activePhase}
             onSelectProject={scrollToProject}
             onPrevProject={handlePrevProject}
@@ -187,76 +218,23 @@ export const FeaturedWorkShowcase: React.FC = () => {
 
         {/* =========================================================================
             PROJECT 2: ONLINE EXAMINATION SYSTEM (Middle Layer - z-20)
-            Background comes from down (p2BgY: 100% -> 0%) covering Project 1
-            Details slide in smoothly from the RIGHT
+            Enters smoothly from the RIGHT side (x: 100% -> 0%)
            ========================================================================= */}
         <motion.div
           style={{
-            y: p2BgY,
-            willChange: 'transform',
-            borderTopLeftRadius: 'clamp(28px, 5vw, 64px)',
-            borderTopRightRadius: 'clamp(28px, 5vw, 64px)',
+            x: p2CardX,
+            opacity: p2Opacity,
+            willChange: 'transform, opacity',
+            borderTopLeftRadius: 'clamp(24px, 4vw, 56px)',
+            borderBottomLeftRadius: 'clamp(24px, 4vw, 56px)',
           }}
-          className="absolute inset-0 w-full h-full z-20 overflow-hidden shadow-[0_-35px_100px_rgba(0,0,0,0.95)] border-t border-white/15 transform-gpu"
+          className="absolute inset-0 w-full h-full z-20 overflow-hidden bg-[#0A0A0E] shadow-[-35px_0_90px_rgba(0,0,0,0.95)] border-l border-white/20 transform-gpu"
         >
-          <motion.div
-            style={{ opacity: p2Opacity, willChange: 'opacity' }}
-            className="w-full h-full relative"
-          >
-            {/* Project 2 Background Image */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden">
-              <img
-                src={deployedProjects[1].landingImg}
-                alt={deployedProjects[1].title}
-                className="w-full h-full object-cover object-top opacity-35 select-none"
-                loading="eager"
-              />
-              {/* Dark Vignettes & Radial Glow */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/80 pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 to-black/90 pointer-events-none" />
-              <div
-                className="absolute inset-0 pointer-events-none opacity-30"
-                style={{
-                  background: `radial-gradient(circle at 75% 35%, ${deployedProjects[1].accentColor}, transparent 65%)`,
-                }}
-              />
-            </div>
-
-            {/* Project 2 Details: SLIDES IN FROM RIGHT SIDE */}
-            <motion.div
-              style={{ x: p2DetailsX, opacity: p2DetailsOpacity, willChange: 'transform, opacity' }}
-              className="relative z-10 w-full h-full"
-            >
-              <ProjectDetailsContent
-                project={deployedProjects[1]}
-                activePhase={activePhase}
-                onSelectProject={scrollToProject}
-                onPrevProject={handlePrevProject}
-                onNextProject={handleNextProject}
-              />
-            </motion.div>
-          </motion.div>
-        </motion.div>
-
-        {/* =========================================================================
-            PROJECT 3: AGRICOLD CONNECT (Top Layer - z-30)
-            Background comes from down (p3BgY: 100% -> 0%) covering Project 2
-            Details slide in smoothly from the RIGHT
-           ========================================================================= */}
-        <motion.div
-          style={{
-            y: p3BgY,
-            willChange: 'transform',
-            borderTopLeftRadius: 'clamp(28px, 5vw, 64px)',
-            borderTopRightRadius: 'clamp(28px, 5vw, 64px)',
-          }}
-          className="absolute inset-0 w-full h-full z-30 overflow-hidden shadow-[0_-35px_100px_rgba(0,0,0,0.95)] border-t border-white/15 transform-gpu"
-        >
-          {/* Project 3 Background Image */}
+          {/* Project 2 Background Image */}
           <div className="absolute inset-0 w-full h-full overflow-hidden">
             <img
-              src={deployedProjects[2].landingImg}
-              alt={deployedProjects[2].title}
+              src={p2.landingImg}
+              alt={p2.title}
               className="w-full h-full object-cover object-top opacity-35 select-none"
               loading="eager"
             />
@@ -266,24 +244,63 @@ export const FeaturedWorkShowcase: React.FC = () => {
             <div
               className="absolute inset-0 pointer-events-none opacity-30"
               style={{
-                background: `radial-gradient(circle at 75% 35%, ${deployedProjects[2].accentColor}, transparent 65%)`,
+                background: `radial-gradient(circle at 75% 35%, ${p2.accentColor}, transparent 65%)`,
               }}
             />
           </div>
 
-          {/* Project 3 Details: SLIDES IN FROM RIGHT SIDE */}
-          <motion.div
-            style={{ x: p3DetailsX, opacity: p3DetailsOpacity, willChange: 'transform, opacity' }}
-            className="relative z-10 w-full h-full"
-          >
-            <ProjectDetailsContent
-              project={deployedProjects[2]}
-              activePhase={activePhase}
-              onSelectProject={scrollToProject}
-              onPrevProject={handlePrevProject}
-              onNextProject={handleNextProject}
+          {/* Project 2 Details in Front */}
+          <ProjectDetailsContent
+            project={p2}
+            projectList={projectList}
+            activePhase={activePhase}
+            onSelectProject={scrollToProject}
+            onPrevProject={handlePrevProject}
+            onNextProject={handleNextProject}
+          />
+        </motion.div>
+
+        {/* =========================================================================
+            PROJECT 3 (Top Layer - z-30)
+            Enters smoothly from the RIGHT side (x: 100% -> 0%)
+           ========================================================================= */}
+        <motion.div
+          style={{
+            x: p3CardX,
+            willChange: 'transform',
+            borderTopLeftRadius: 'clamp(24px, 4vw, 56px)',
+            borderBottomLeftRadius: 'clamp(24px, 4vw, 56px)',
+          }}
+          className="absolute inset-0 w-full h-full z-30 overflow-hidden bg-[#0A0A0E] shadow-[-35px_0_90px_rgba(0,0,0,0.95)] border-l border-white/20 transform-gpu"
+        >
+          {/* Project 3 Background Image */}
+          <div className="absolute inset-0 w-full h-full overflow-hidden">
+            <img
+              src={p3.landingImg}
+              alt={p3.title}
+              className="w-full h-full object-cover object-top opacity-35 select-none"
+              loading="eager"
             />
-          </motion.div>
+            {/* Dark Vignettes & Radial Glow */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 to-black/90 pointer-events-none" />
+            <div
+              className="absolute inset-0 pointer-events-none opacity-30"
+              style={{
+                background: `radial-gradient(circle at 75% 35%, ${p3.accentColor}, transparent 65%)`,
+              }}
+            />
+          </div>
+
+          {/* Project 3 Details in Front */}
+          <ProjectDetailsContent
+            project={p3}
+            projectList={projectList}
+            activePhase={activePhase}
+            onSelectProject={scrollToProject}
+            onPrevProject={handlePrevProject}
+            onNextProject={handleNextProject}
+          />
         </motion.div>
 
       </div>
@@ -296,6 +313,7 @@ export const FeaturedWorkShowcase: React.FC = () => {
 // =============================================================================
 interface ProjectDetailsProps {
   project: DeployedProject;
+  projectList: DeployedProject[];
   activePhase: number;
   onSelectProject: (index: number) => void;
   onPrevProject: () => void;
@@ -304,11 +322,13 @@ interface ProjectDetailsProps {
 
 const ProjectDetailsContent: React.FC<ProjectDetailsProps> = ({
   project,
+  projectList,
   activePhase,
   onSelectProject,
   onPrevProject,
   onNextProject,
 }) => {
+  const displayList = projectList && projectList.length > 0 ? projectList : deployedProjects;
   return (
     <div className="relative z-20 w-full h-full flex flex-col justify-between max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4">
       {/* Top Header Row: Project Badge, Live Indicator, Clickable Live Domain Badge */}
@@ -454,7 +474,7 @@ const ProjectDetailsContent: React.FC<ProjectDetailsProps> = ({
       {/* Bottom Bar: High-contrast Frosted Glass Pills (Immune to Vignette & Cutoff) */}
       <div className="flex flex-wrap items-center justify-between gap-2 pt-2 pb-1 border-t border-white/15 text-[11px] sm:text-xs font-mono uppercase tracking-wider shrink-0 z-30">
         <div className="flex items-center gap-1.5 bg-[#0E0F14] px-2.5 py-1 rounded-full border border-white/20 shadow-md">
-          {deployedProjects.map((p, idx) => (
+          {displayList.map((p, idx) => (
             <button
               key={p.index}
               onClick={() => onSelectProject(idx)}
@@ -491,9 +511,9 @@ const ProjectDetailsContent: React.FC<ProjectDetailsProps> = ({
 
           <button
             onClick={onNextProject}
-            disabled={activePhase === deployedProjects.length - 1}
+            disabled={activePhase === displayList.length - 1}
             className={`px-3 py-1 rounded-full border border-white/15 bg-[#0E0F14] text-[11px] font-mono transition-all flex items-center gap-1 ${
-              activePhase === deployedProjects.length - 1
+              activePhase === displayList.length - 1
                 ? 'opacity-30 cursor-not-allowed text-white/40'
                 : 'text-white hover:bg-[#B600A8] cursor-pointer shadow-md'
             }`}

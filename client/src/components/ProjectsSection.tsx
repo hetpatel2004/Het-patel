@@ -1,7 +1,7 @@
 import React from 'react';
 import { projectsData, type ProjectItem } from '../data/projects';
 import { FadeIn } from './FadeIn';
-import { ArrowUpRight, Play } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 interface ProjectsSectionProps {
   onOpenLiveProject: (project: ProjectItem) => void;
