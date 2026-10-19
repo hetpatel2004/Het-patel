@@ -320,3 +320,82 @@ export const apiDeleteInquiry = async (id: string): Promise<boolean> => {
   return true;
 };
 
+// VISITOR ANALYTICS
+export interface VisitorRecord {
+  id: string;
+  visitorId: string;
+  name: string;
+  hasContacted: boolean;
+  deviceType: 'Desktop' | 'Mobile' | 'Tablet' | 'Unknown';
+  deviceModel: string;
+  os: string;
+  browser: string;
+  screenResolution: string;
+  referrer: string;
+  referrerUrl: string;
+  currentPath: string;
+  timezone: string;
+  country: string;
+  city: string;
+  visitCount: number;
+  lastVisitedAt: string;
+}
+
+export interface AnalyticsSummary {
+  totalUniqueVisitors: number;
+  totalPageviews: number;
+  todayPageviews: number;
+  todayUnique: number;
+  devices: {
+    Desktop: number;
+    Mobile: number;
+    Tablet: number;
+  };
+  mobilePercent: number;
+  desktopPercent: number;
+  contactedCount: number;
+}
+
+export interface AnalyticsStatsResponse {
+  summary: AnalyticsSummary;
+  recentVisitors: VisitorRecord[];
+}
+
+export const apiGetAnalyticsStats = async (): Promise<AnalyticsStatsResponse> => {
+  const res = await fetch(`${API_BASE}/analytics/stats`, {
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || 'Failed to fetch analytics data');
+  }
+  return {
+    summary: data.summary,
+    recentVisitors: data.recentVisitors || [],
+  };
+};
+
+export const apiDeleteVisitorRecord = async (id: string): Promise<boolean> => {
+  const res = await fetch(`${API_BASE}/analytics/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || 'Failed to delete visitor record');
+  }
+  return true;
+};
+
+export const apiClearAnalyticsLogs = async (): Promise<boolean> => {
+  const res = await fetch(`${API_BASE}/analytics`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || 'Failed to clear analytics logs');
+  }
+  return true;
+};
+

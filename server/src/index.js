@@ -11,6 +11,7 @@ import projectRoutes from './routes/projectRoutes.js';
 import skillRoutes from './routes/skillRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Root Route Fallbacks (resilience if client VITE_API_URL omits /api)
 app.use('/auth', authRoutes);
@@ -55,6 +57,7 @@ app.use('/projects', projectRoutes);
 app.use('/skills', skillRoutes);
 app.use('/contact', contactRoutes);
 app.use('/services', serviceRoutes);
+app.use('/analytics', analyticsRoutes);
 
 // Health check
 const sendHealth = (req, res) => {
@@ -69,6 +72,8 @@ const sendHealth = (req, res) => {
       '/api/projects',
       '/api/skills',
       '/api/contact',
+      '/api/analytics/visit',
+      '/api/analytics/stats',
     ],
     timestamp: new Date().toISOString(),
   });
@@ -89,6 +94,7 @@ if (fs.existsSync(clientDistPath)) {
       req.path.startsWith('/contact') ||
       req.path.startsWith('/services') ||
       req.path.startsWith('/auth') ||
+      req.path.startsWith('/analytics') ||
       req.path.startsWith('/health');
 
     if (isBackendRoute) {

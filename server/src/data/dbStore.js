@@ -19,6 +19,7 @@ let inMemoryStore = {
   projects: defaultProjects,
   skillGroups: defaultSkillGroups,
   inquiries: defaultInquiries,
+  visitors: [],
 };
 
 // Load from disk if file exists
@@ -31,6 +32,7 @@ try {
       projects: parsed.projects && parsed.projects.length ? parsed.projects : defaultProjects,
       skillGroups: parsed.skillGroups && parsed.skillGroups.length ? parsed.skillGroups : defaultSkillGroups,
       inquiries: parsed.inquiries && parsed.inquiries.length ? parsed.inquiries : defaultInquiries,
+      visitors: Array.isArray(parsed.visitors) ? parsed.visitors : [],
     };
   } else {
     // Write defaults to file
@@ -218,3 +220,74 @@ export const deleteInquiry = (id) => {
   }
   return false;
 };
+
+// VISITOR ANALYTICS OPERATIONS
+export const getAllVisitors = () => {
+  return inMemoryStore.visitors || [];
+};
+
+export const recordVisitor = (data) => {
+  if (!inMemoryStore.visitors) inMemoryStore.visitors = [];
+
+  const existingIndex = inMemoryStore.visitors.findIndex(v => v.visitorId === data.visitorId);
+  const now = new Date().toISOString();
+
+  if (existingIndex !== -1) {
+    const existing = inMemoryStore.visitors[existingIndex];
+    existing.visitCount = (existing.visitCount || 1) + 1;
+    existing.lastVisitedAt = now;
+    if (data.name && !existing.name) existing.name = data.name;
+    if (data.hasContacted) existing.hasContacted = true;
+    if (data.currentPath) existing.currentPath = data.currentPath;
+    saveStore();
+    return existing;
+  }
+
+  const newVisitor = {
+    id: `vis-${Date.now()}`,
+    visitorId: data.visitorId || `anon-${Date.now()}`,
+    name: data.name || '',
+    ip: data.ip || '',
+    deviceType: data.deviceType || 'Desktop',
+    deviceModel: data.deviceModel || 'Unknown Device',
+    os: data.os || 'Unknown OS',
+    browser: data.browser || 'Unknown Browser',
+    screenResolution: data.screenResolution || 'Unknown',
+    referrer: data.referrer || 'Direct Visit',
+    referrerUrl: data.referrerUrl || '',
+    currentPath: data.currentPath || '/',
+    timezone: data.timezone || '',
+    country: data.country || 'India',
+    city: data.city || '',
+    visitCount: 1,
+    hasContacted: Boolean(data.hasContacted),
+    lastVisitedAt: now,
+    createdAt: now,
+  };
+
+  inMemoryStore.visitors.unshift(newVisitor);
+  // Cap at 500 recent records in local JSON backup
+  if (inMemoryStore.visitors.length > 500) {
+    inMemoryStore.visitors = inMemoryStore.visitors.slice(0, 500);
+  }
+  saveStore();
+  return newVisitor;
+};
+
+export const deleteVisitor = (id) => {
+  if (!inMemoryStore.visitors) return false;
+  const initialLength = inMemoryStore.visitors.length;
+  inMemoryStore.visitors = inMemoryStore.visitors.filter(v => v.id !== id && v._id !== id && v.visitorId !== id);
+  if (inMemoryStore.visitors.length !== initialLength) {
+    saveStore();
+    return true;
+  }
+  return false;
+};
+
+export const clearAllVisitors = () => {
+  inMemoryStore.visitors = [];
+  saveStore();
+  return true;
+};
+

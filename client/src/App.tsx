@@ -1,12 +1,27 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { trackVisit } from './services/analytics';
+
+const AnalyticsTracker: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Silently track public page visits (exclude admin & login routes)
+    if (!location.pathname.startsWith('/admin') && !location.pathname.startsWith('/login')) {
+      trackVisit();
+    }
+  }, [location.pathname]);
+
+  return null;
+};
 
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <Routes>
         {/* Public Portfolio (No login button or info in UI) */}
         <Route path="/" element={<PortfolioPage />} />

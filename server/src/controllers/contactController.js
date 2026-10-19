@@ -3,8 +3,10 @@ import {
   addInquiry,
   updateInquiryStatus,
   deleteInquiry,
+  recordVisitor,
 } from '../data/dbStore.js';
 import Contact from '../models/Contact.js';
+import Visitor from '../models/Visitor.js';
 import { getDbStatus } from '../config/db.js';
 
 // In-memory rate-limiter: Max 5 submissions per IP every 10 minutes
@@ -38,7 +40,7 @@ export const createContact = async (req, res) => {
       });
     }
 
-    const { name, email, phone, service, budget, timeline, message } = req.body;
+    const { name, email, phone, service, budget, timeline, message, visitorId } = req.body;
 
     if (!name || !email || !message) {
       return res.status(400).json({
@@ -79,9 +81,29 @@ export const createContact = async (req, res) => {
           budget: inquiryRecord.budget,
           timeline: inquiryRecord.timeline,
           message: inquiryRecord.message,
+          status: 'new',
         });
       } catch (dbErr) {
         console.warn('[MongoDB Contact Save]', dbErr.message);
+      }
+    }
+
+    // Silently link visitor if visitorId was provided
+    if (visitorId) {
+      try {
+        recordVisitor({
+          visitorId,
+          name: inquiryRecord.name,
+          hasContacted: true,
+        });
+        if (connected) {
+          await Visitor.findOneAndUpdate(
+            { visitorId },
+            { $set: { name: inquiryRecord.name, hasContacted: true } }
+          );
+        }
+      } catch (visErr) {
+        console.warn('[Visitor Link Warning]', visErr.message);
       }
     }
 
@@ -121,6 +143,7 @@ export const getContacts = async (req, res) => {
               status: c.status || 'new',
               notes: c.notes || '',
               submittedAt: c.createdAt ? c.createdAt.toISOString() : new Date().toISOString(),
+              createdAt: c.createdAt ? c.createdAt.toISOString() : new Date().toISOString(),
             })),
           });
         }

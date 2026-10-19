@@ -28,6 +28,16 @@ import {
   Tag,
   Image as ImageIcon,
   Upload,
+  Eye,
+  Monitor,
+  Smartphone,
+  Tablet,
+  TrendingUp,
+  RefreshCw,
+  Activity,
+  Search,
+  List,
+  LayoutGrid,
 } from 'lucide-react';
 import {
   clearAuthToken,
@@ -46,17 +56,22 @@ import {
   apiGetInquiries,
   apiUpdateInquiryStatus,
   apiDeleteInquiry,
+  apiGetAnalyticsStats,
+  apiDeleteVisitorRecord,
+  apiClearAnalyticsLogs,
   type ProfileData,
   type ProjectData,
   type SkillCategoryGroup,
   type InquiryData,
+  type VisitorRecord,
+  type AnalyticsSummary,
 } from '../services/api';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  // Active Menu Tab: 'details' | 'projects' | 'skills' | 'inquiries'
-  const [activeTab, setActiveTab] = useState<'details' | 'projects' | 'skills' | 'inquiries'>('details');
+  // Active Menu Tab: 'details' | 'projects' | 'skills' | 'inquiries' | 'analytics'
+  const [activeTab, setActiveTab] = useState<'details' | 'projects' | 'skills' | 'inquiries' | 'analytics'>('details');
 
   // Loading & notification states
   const [isInitializing, setIsInitializing] = useState(true);
@@ -68,6 +83,15 @@ export const AdminDashboard: React.FC = () => {
   const [skills, setSkills] = useState<SkillCategoryGroup[]>([]);
   const [inquiries, setInquiries] = useState<InquiryData[]>([]);
   const [inquiryFilter, setInquiryFilter] = useState<'all' | 'new' | 'replied' | 'archived'>('all');
+  const [isInquiriesLoading, setIsInquiriesLoading] = useState(false);
+
+  // Visitor Analytics states
+  const [analyticsSummary, setAnalyticsSummary] = useState<AnalyticsSummary | null>(null);
+  const [visitorLogs, setVisitorLogs] = useState<VisitorRecord[]>([]);
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+  const [visitorFilter, setVisitorFilter] = useState<'all' | 'contacted' | 'desktop' | 'mobile'>('all');
+  const [visitorSearch, setVisitorSearch] = useState('');
+  const [analyticsViewMode, setAnalyticsViewMode] = useState<'table' | 'cards'>('table');
 
   // Project Modal State (for Add / Edit)
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -126,16 +150,21 @@ export const AdminDashboard: React.FC = () => {
       }
 
       try {
-        const [profData, projData, skillData, inqData] = await Promise.all([
+        const [profData, projData, skillData, inqData, analyticsData] = await Promise.all([
           apiGetProfile(),
           apiGetProjects(),
           apiGetSkills(),
           apiGetInquiries().catch(() => []),
+          apiGetAnalyticsStats().catch(() => null),
         ]);
         setProfile(profData);
         setProjects(projData);
         setSkills(skillData);
         setInquiries(inqData);
+        if (analyticsData) {
+          setAnalyticsSummary(analyticsData.summary);
+          setVisitorLogs(analyticsData.recentVisitors || []);
+        }
       } catch (err) {
         console.error('Error loading dashboard data:', err);
         showToast('Connected in offline mode with cached data.', 'success');
@@ -150,6 +179,63 @@ export const AdminDashboard: React.FC = () => {
   const handleSignOut = () => {
     clearAuthToken();
     navigate('/login', { replace: true });
+  };
+
+  // -------------------------------------------------------------
+  // TAB 5: VISITOR ANALYTICS HANDLERS
+  // -------------------------------------------------------------
+  const loadAnalytics = async () => {
+    setIsAnalyticsLoading(true);
+    try {
+      const data = await apiGetAnalyticsStats();
+      setAnalyticsSummary(data.summary);
+      setVisitorLogs(data.recentVisitors || []);
+      showToast('Analytics & traffic records updated.');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to refresh analytics', 'error');
+    } finally {
+      setIsAnalyticsLoading(false);
+    }
+  };
+
+  const handleDeleteVisitor = async (id: string, name: string) => {
+    if (!window.confirm(`Delete visitor record for "${name}"?`)) return;
+    try {
+      await apiDeleteVisitorRecord(id);
+      setVisitorLogs(visitorLogs.filter((v) => v.id !== id && v.visitorId !== id));
+      if (analyticsSummary) {
+        setAnalyticsSummary({
+          ...analyticsSummary,
+          totalUniqueVisitors: Math.max(0, analyticsSummary.totalUniqueVisitors - 1),
+        });
+      }
+      showToast(`Visitor record for "${name}" deleted.`);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete record', 'error');
+    }
+  };
+
+  const handleClearAnalytics = async () => {
+    if (!window.confirm('Are you sure you want to clear all visitor tracking records? This cannot be undone.')) return;
+    try {
+      await apiClearAnalyticsLogs();
+      setVisitorLogs([]);
+      if (analyticsSummary) {
+        setAnalyticsSummary({
+          ...analyticsSummary,
+          totalUniqueVisitors: 0,
+          totalPageviews: 0,
+          todayPageviews: 0,
+          todayUnique: 0,
+          mobilePercent: 0,
+          desktopPercent: 100,
+          contactedCount: 0,
+        });
+      }
+      showToast('All visitor tracking records cleared.');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to clear records', 'error');
+    }
   };
 
   // -------------------------------------------------------------
@@ -363,6 +449,76 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const loadInquiries = async () => {
+    setIsInquiriesLoading(true);
+    try {
+      const data = await apiGetInquiries();
+      setInquiries(data);
+      showToast('Client inquiries synced from database.');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to refresh inquiries', 'error');
+    } finally {
+      setIsInquiriesLoading(false);
+    }
+  };
+
+  // Dynamic Background Polling for Inquiries (auto-sync every 15s when Tab 4 is open)
+  useEffect(() => {
+    if (activeTab !== 'inquiries') return;
+    const interval = setInterval(async () => {
+      try {
+        const fresh = await apiGetInquiries();
+        setInquiries(fresh);
+      } catch {
+        // Silent background polling
+      }
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
+  // Format helpers for Tab 5 Visitor Telemetry Table
+  const formatVisitorDateTime = (dateString?: string) => {
+    if (!dateString) return 'Just now';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return 'Recently';
+
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = d.toDateString() === yesterday.toDateString();
+
+    const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
+    if (isToday) return `Today, ${timeStr}`;
+    if (isYesterday) return `Yesterday, ${timeStr}`;
+    return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${timeStr}`;
+  };
+
+  const formatDeviceAndOs = (v: VisitorRecord) => {
+    const isMobile = v.deviceType === 'Mobile';
+    const isTablet = v.deviceType === 'Tablet';
+    const icon = isMobile || isTablet ? '📱' : '💻';
+    const model = v.deviceModel || (isMobile ? 'Mobile Device' : 'Windows PC');
+    const os = v.os || '';
+    if (model.toLowerCase().includes(os.toLowerCase())) {
+      return `${icon} ${model}`;
+    }
+    return os ? `${icon} ${model} (${os})` : `${icon} ${model}`;
+  };
+
+  const formatLocation = (v: VisitorRecord) => {
+    const countryCode = v.country === 'India' ? 'IN' : v.country === 'United States' ? 'US' : v.country || 'IN';
+    if (v.city) return `${v.city}, ${countryCode}`;
+    if (v.country) return v.country;
+    if (v.timezone) {
+      const parts = v.timezone.split('/');
+      const city = parts[parts.length - 1].replace(/_/g, ' ');
+      return `${city}, IN`;
+    }
+    return 'India, IN';
+  };
+
   if (isInitializing) {
     return (
       <div className="min-h-screen w-full bg-[#07070A] text-white flex flex-col items-center justify-center">
@@ -503,8 +659,11 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Menu 4: Client Inquiries */}
             <button
-              onClick={() => setActiveTab('inquiries')}
-              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+              onClick={() => {
+                setActiveTab('inquiries');
+                loadInquiries();
+              }}
+              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer mb-1 ${
                 activeTab === 'inquiries'
                   ? 'bg-[#B600A8] text-white font-bold shadow-[0_4px_20px_rgba(182,0,168,0.35)]'
                   : 'text-white/70 hover:bg-white/5 hover:text-white'
@@ -512,7 +671,7 @@ export const AdminDashboard: React.FC = () => {
             >
               <div className="flex items-center gap-2.5">
                 <MessageSquare className="w-4 h-4" />
-                <span>4. Inquiries</span>
+                <span>4. Inquiries &amp; Interests</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {inquiries.filter((i) => i.status === 'new').length > 0 && (
@@ -522,6 +681,29 @@ export const AdminDashboard: React.FC = () => {
                 )}
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20 font-bold">
                   {inquiries.length}
+                </span>
+              </div>
+            </button>
+
+            {/* Menu 5: Silent Visitor Analytics */}
+            <button
+              onClick={() => {
+                setActiveTab('analytics');
+                if (!analyticsSummary) loadAnalytics();
+              }}
+              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                activeTab === 'analytics'
+                  ? 'bg-[#B600A8] text-white font-bold shadow-[0_4px_20px_rgba(182,0,168,0.35)]'
+                  : 'text-white/70 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Eye className="w-4 h-4" />
+                <span>5. Visitor Traffic</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20 font-bold">
+                  {analyticsSummary?.totalUniqueVisitors ?? visitorLogs.length}
                 </span>
               </div>
             </button>
@@ -546,15 +728,15 @@ export const AdminDashboard: React.FC = () => {
               <span className="text-amber-400 font-bold">{skills.length} Categories</span>
             </div>
             <div className="flex justify-between">
-              <span>Total Tools:</span>
-              <span className="text-white font-bold">
-                {skills.reduce((acc, g) => acc + g.skills.length, 0)} Production
-              </span>
-            </div>
-            <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
               <span>Client Leads:</span>
               <span className="text-emerald-300 font-bold">
                 {inquiries.length} Total ({inquiries.filter((i) => i.status === 'new').length} New)
+              </span>
+            </div>
+            <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
+              <span>Silent Visitors:</span>
+              <span className="text-purple-300 font-bold">
+                {analyticsSummary?.totalUniqueVisitors ?? visitorLogs.length} Unique Devices
               </span>
             </div>
           </div>
@@ -1089,8 +1271,12 @@ export const AdminDashboard: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-3">
                     <h2 className="font-sans font-black uppercase text-2xl sm:text-3xl text-white tracking-tight">
-                      4. Client Inquiries &amp; Leads
+                      4. Inquiries &amp; Client Interests
                     </h2>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-mono text-[11px] font-bold border border-emerald-500/30 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Live Dynamic
+                    </span>
                     {inquiries.filter((i) => i.status === 'new').length > 0 && (
                       <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">
                         {inquiries.filter((i) => i.status === 'new').length} Unread
@@ -1098,32 +1284,44 @@ export const AdminDashboard: React.FC = () => {
                     )}
                   </div>
                   <p className="font-sans text-xs sm:text-sm text-white/60 mt-1">
-                    Manage direct contact requests submitted through your portfolio contact modal. Connect instantly on WhatsApp or Email.
+                    All inquiries, project details, and messages submitted by prospective clients through your "Contact Me" modal. Connect instantly on WhatsApp or Email.
                   </p>
                 </div>
 
-                {/* Filter Tabs */}
-                <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10 font-mono text-xs">
-                  {(['all', 'new', 'replied', 'archived'] as const).map((filterKey) => {
-                    const count =
-                      filterKey === 'all'
-                        ? inquiries.length
-                        : inquiries.filter((i) => i.status === filterKey).length;
-                    return (
-                      <button
-                        key={filterKey}
-                        onClick={() => setInquiryFilter(filterKey)}
-                        className={`px-3 py-1.5 rounded-xl uppercase transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
-                          inquiryFilter === filterKey
-                            ? 'bg-[#B600A8] text-white font-bold shadow-md'
-                            : 'text-white/60 hover:text-white hover:bg-white/5'
-                        }`}
-                      >
-                        <span>{filterKey}</span>
-                        <span className="text-[10px] opacity-75">({count})</span>
-                      </button>
-                    );
-                  })}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => loadInquiries()}
+                    disabled={isInquiriesLoading}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-white transition-all cursor-pointer disabled:opacity-50"
+                    title="Sync inquiries from database"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-[#B600A8] ${isInquiriesLoading ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+
+                  {/* Filter Tabs */}
+                  <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10 font-mono text-xs">
+                    {(['all', 'new', 'replied', 'archived'] as const).map((filterKey) => {
+                      const count =
+                        filterKey === 'all'
+                          ? inquiries.length
+                          : inquiries.filter((i) => i.status === filterKey).length;
+                      return (
+                        <button
+                          key={filterKey}
+                          onClick={() => setInquiryFilter(filterKey)}
+                          className={`px-3 py-1.5 rounded-xl uppercase transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                            inquiryFilter === filterKey
+                              ? 'bg-[#B600A8] text-white font-bold shadow-md'
+                              : 'text-white/60 hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          <span>{filterKey}</span>
+                          <span className="text-[10px] opacity-75">({count})</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -1339,6 +1537,528 @@ export const AdminDashboard: React.FC = () => {
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* TAB 5: VISITOR ANALYTICS & TELEMETRY */}
+          {/* ============================================================== */}
+          {activeTab === 'analytics' && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Header with Title and Global Actions */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-sans font-black uppercase text-xl sm:text-2xl tracking-wide text-white">
+                      Visitor Traffic & Telemetry
+                    </h2>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#B600A8]/20 text-[#B600A8] font-mono text-[11px] font-bold border border-[#B600A8]/30 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Live Telemetry
+                    </span>
+                  </div>
+                  <p className="font-sans text-xs sm:text-sm text-white/60 mt-1 max-w-2xl">
+                    Silent analytics captured in the background with zero cookie banners or popups. Shows device models, operating systems, screen resolution, referrers, and links names when visitors submit an inquiry.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => loadAnalytics()}
+                    disabled={isAnalyticsLoading}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-white transition-all cursor-pointer disabled:opacity-50"
+                    title="Refresh analytics data"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-[#B600A8] ${isAnalyticsLoading ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+
+                  <button
+                    onClick={handleClearAnalytics}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-xs font-mono text-red-300 hover:text-red-200 transition-all cursor-pointer"
+                    title="Clear all visitor records"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Clear Logs</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* KPI Summary Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Total Unique Visitors */}
+                <div className="p-4 rounded-3xl bg-[#111116] border border-white/10 relative overflow-hidden group hover:border-[#B600A8]/40 transition-all">
+                  <div className="flex items-center justify-between text-white/40 mb-2">
+                    <span className="font-mono text-[11px] uppercase tracking-wider">Unique Visitors</span>
+                    <Eye className="w-4 h-4 text-[#B600A8]" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-sans font-black text-white">
+                    {analyticsSummary?.totalUniqueVisitors ?? 0}
+                  </div>
+                  <div className="font-mono text-[10px] text-white/50 mt-1 flex items-center gap-1">
+                    <Activity className="w-3 h-3 text-emerald-400" />
+                    <span>{analyticsSummary?.contactedCount ?? 0} identified inquiries</span>
+                  </div>
+                </div>
+
+                {/* Total Pageviews / Visits */}
+                <div className="p-4 rounded-3xl bg-[#111116] border border-white/10 relative overflow-hidden group hover:border-[#B600A8]/40 transition-all">
+                  <div className="flex items-center justify-between text-white/40 mb-2">
+                    <span className="font-mono text-[11px] uppercase tracking-wider">Total Visits</span>
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-sans font-black text-white">
+                    {analyticsSummary?.totalPageviews ?? 0}
+                  </div>
+                  <div className="font-mono text-[10px] text-white/50 mt-1">
+                    Cumulative pageviews recorded
+                  </div>
+                </div>
+
+                {/* Today's Traffic */}
+                <div className="p-4 rounded-3xl bg-[#111116] border border-white/10 relative overflow-hidden group hover:border-[#B600A8]/40 transition-all">
+                  <div className="flex items-center justify-between text-white/40 mb-2">
+                    <span className="font-mono text-[11px] uppercase tracking-wider">Today's Active</span>
+                    <Clock className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-sans font-black text-amber-300">
+                    {analyticsSummary?.todayUnique ?? 0}
+                  </div>
+                  <div className="font-mono text-[10px] text-white/50 mt-1">
+                    {analyticsSummary?.todayPageviews ?? 0} visits in last 24 hrs
+                  </div>
+                </div>
+
+                {/* Device Distribution */}
+                <div className="p-4 rounded-3xl bg-[#111116] border border-white/10 relative overflow-hidden group hover:border-[#B600A8]/40 transition-all">
+                  <div className="flex items-center justify-between text-white/40 mb-2">
+                    <span className="font-mono text-[11px] uppercase tracking-wider">Device Split</span>
+                    <Monitor className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div className="flex items-center gap-3 text-white">
+                    <div className="flex items-center gap-1 text-sm font-sans font-bold">
+                      <Monitor className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>{analyticsSummary?.desktopPercent ?? 100}%</span>
+                    </div>
+                    <span className="text-white/20">/</span>
+                    <div className="flex items-center gap-1 text-sm font-sans font-bold">
+                      <Smartphone className="w-3.5 h-3.5 text-pink-400" />
+                      <span>{analyticsSummary?.mobilePercent ?? 0}%</span>
+                    </div>
+                  </div>
+                  <div className="font-mono text-[10px] text-white/50 mt-1">
+                    Desktop vs Mobile & Tablet
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Tabs, Search Bar, and View Switcher */}
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 p-2 rounded-2xl bg-white/[0.02] border border-white/5">
+                {/* Filter Tabs */}
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 border border-white/10 font-mono text-xs overflow-x-auto">
+                  {[
+                    { key: 'all', label: 'All Visitors', count: visitorLogs.length },
+                    { key: 'contacted', label: 'Identified Leads', count: visitorLogs.filter((v) => v.hasContacted).length },
+                    { key: 'desktop', label: 'Desktop', count: visitorLogs.filter((v) => v.deviceType === 'Desktop').length },
+                    { key: 'mobile', label: 'Mobile', count: visitorLogs.filter((v) => v.deviceType === 'Mobile' || v.deviceType === 'Tablet').length },
+                  ].map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setVisitorFilter(tab.key as any)}
+                      className={`px-3 py-1.5 rounded-lg uppercase transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-[11px] ${
+                        visitorFilter === tab.key
+                          ? 'bg-[#B600A8] text-white font-bold shadow-md'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span className="text-[10px] opacity-75">({tab.count})</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Search & View Switcher */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 sm:w-64">
+                    <Search className="w-3.5 h-3.5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={visitorSearch}
+                      onChange={(e) => setVisitorSearch(e.target.value)}
+                      placeholder="Search name, device, OS..."
+                      className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono text-white placeholder-white/30 focus:outline-none focus:border-[#B600A8]"
+                    />
+                    {visitorSearch && (
+                      <button
+                        onClick={() => setVisitorSearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-xs cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10 font-mono text-xs shrink-0">
+                    <button
+                      onClick={() => setAnalyticsViewMode('table')}
+                      className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs transition-all cursor-pointer ${
+                        analyticsViewMode === 'table'
+                          ? 'bg-[#B600A8] text-white font-bold shadow-md'
+                          : 'text-white/60 hover:text-white'
+                      }`}
+                      title="Table View (Columns list)"
+                    >
+                      <List className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Table</span>
+                    </button>
+                    <button
+                      onClick={() => setAnalyticsViewMode('cards')}
+                      className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs transition-all cursor-pointer ${
+                        analyticsViewMode === 'cards'
+                          ? 'bg-[#B600A8] text-white font-bold shadow-md'
+                          : 'text-white/60 hover:text-white'
+                      }`}
+                      title="Cards View (Detailed spec cards)"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Cards</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visitor Telemetry Content: Table View (Default) or Cards View */}
+              {(() => {
+                const searchLower = visitorSearch.toLowerCase().trim();
+                const filtered = visitorLogs.filter((v) => {
+                  // Filter by category
+                  if (visitorFilter === 'contacted' && !v.hasContacted) return false;
+                  if (visitorFilter === 'desktop' && v.deviceType !== 'Desktop') return false;
+                  if (visitorFilter === 'mobile' && v.deviceType !== 'Mobile' && v.deviceType !== 'Tablet') return false;
+
+                  // Filter by search query
+                  if (searchLower) {
+                    const matchName = v.name?.toLowerCase().includes(searchLower);
+                    const matchDevice = v.deviceModel?.toLowerCase().includes(searchLower);
+                    const matchOs = v.os?.toLowerCase().includes(searchLower);
+                    const matchBrowser = v.browser?.toLowerCase().includes(searchLower);
+                    const matchId = v.visitorId?.toLowerCase().includes(searchLower);
+                    const matchCity = v.city?.toLowerCase().includes(searchLower);
+                    const matchCountry = v.country?.toLowerCase().includes(searchLower);
+                    const matchSource = v.referrer?.toLowerCase().includes(searchLower);
+                    if (!matchName && !matchDevice && !matchOs && !matchBrowser && !matchId && !matchCity && !matchCountry && !matchSource) {
+                      return false;
+                    }
+                  }
+                  return true;
+                });
+
+                if (isAnalyticsLoading && visitorLogs.length === 0) {
+                  return (
+                    <div className="p-12 text-center rounded-3xl bg-[#111116] border border-white/10 space-y-3">
+                      <div className="w-8 h-8 border-2 border-white/20 border-t-[#B600A8] rounded-full animate-spin mx-auto" />
+                      <p className="font-mono text-xs text-white/50">Fetching visitor telemetry...</p>
+                    </div>
+                  );
+                }
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="p-12 text-center rounded-3xl bg-[#111116] border border-white/10 space-y-3">
+                      <Eye className="w-10 h-10 text-white/20 mx-auto" />
+                      <h4 className="font-sans font-bold text-white text-lg">No Visitor Records Found</h4>
+                      <p className="font-mono text-xs text-white/40 max-w-sm mx-auto">
+                        {visitorSearch
+                          ? `No visitors matched your search query "${visitorSearch}".`
+                          : visitorFilter !== 'all'
+                          ? `No visitors found for filter "${visitorFilter}".`
+                          : 'No visitors have browsed your portfolio yet. Live telemetry will populate here as people visit.'}
+                      </p>
+                    </div>
+                  );
+                }
+
+                // TABLE VIEW (Requested columns format)
+                if (analyticsViewMode === 'table') {
+                  return (
+                    <div className="overflow-x-auto rounded-3xl border border-white/10 bg-[#111116] shadow-2xl">
+                      <table className="w-full text-left text-xs font-mono">
+                        <thead className="bg-white/[0.04] text-[11px] text-white/50 uppercase tracking-wider border-b border-white/10">
+                          <tr>
+                            <th className="py-4 px-5 font-bold">Visitor Name / Tag</th>
+                            <th className="py-4 px-5 font-bold">Device &amp; OS</th>
+                            <th className="py-4 px-5 font-bold">Browser</th>
+                            <th className="py-4 px-5 font-bold">Location</th>
+                            <th className="py-4 px-5 font-bold">Source</th>
+                            <th className="py-4 px-5 font-bold">Date &amp; Time</th>
+                            <th className="py-4 px-5 font-bold text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {filtered.map((visitor) => {
+                            const visitorKey = visitor.id || visitor.visitorId;
+                            const isIdentified = visitor.hasContacted || (!visitor.name.startsWith('Guest #') && visitor.name !== 'Anonymous' && visitor.name.length > 2);
+                            const displayName = isIdentified
+                              ? visitor.name
+                              : (visitor.name.startsWith('Guest #') ? visitor.name : `Guest #${visitor.visitorId.slice(-4).toUpperCase()}`);
+
+                            return (
+                              <tr key={visitorKey} className="hover:bg-white/[0.02] transition-colors group">
+                                {/* 1. Visitor Name / Tag */}
+                                <td className="py-4 px-5 whitespace-nowrap">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-sans font-bold text-sm text-white">{displayName}</span>
+                                    {isIdentified ? (
+                                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <CheckCircle2 className="w-2.5 h-2.5" />
+                                        (Contacted)
+                                      </span>
+                                    ) : (
+                                      <span className="px-1.5 py-0.2 rounded-full bg-white/5 border border-white/10 text-white/50 text-[10px]">
+                                        Visitor
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-white/40 mt-0.5">
+                                    {visitor.visitCount} {visitor.visitCount === 1 ? 'visit' : 'visits'} • ID: {visitor.visitorId}
+                                  </div>
+                                </td>
+
+                                {/* 2. Device & OS */}
+                                <td className="py-4 px-5 whitespace-nowrap">
+                                  <div className="font-medium text-white flex items-center gap-1.5">
+                                    <span>{formatDeviceAndOs(visitor)}</span>
+                                  </div>
+                                  <div className="text-[10px] text-white/40 mt-0.5">
+                                    Res: {visitor.screenResolution || 'Standard Display'}
+                                  </div>
+                                </td>
+
+                                {/* 3. Browser */}
+                                <td className="py-4 px-5 whitespace-nowrap">
+                                  <span className="text-amber-300 font-medium">
+                                    {visitor.browser || 'Modern Browser'}
+                                  </span>
+                                </td>
+
+                                {/* 4. Location */}
+                                <td className="py-4 px-5 whitespace-nowrap">
+                                  <div className="flex items-center gap-1.5 text-white/80">
+                                    <Globe className="w-3.5 h-3.5 text-[#B600A8]" />
+                                    <span>{formatLocation(visitor)}</span>
+                                  </div>
+                                </td>
+
+                                {/* 5. Source */}
+                                <td className="py-4 px-5 whitespace-nowrap">
+                                  <span
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border ${
+                                      visitor.referrer === 'LinkedIn'
+                                        ? 'bg-blue-500/10 text-blue-300 border-blue-500/20'
+                                        : visitor.referrer === 'GitHub'
+                                        ? 'bg-purple-500/10 text-purple-300 border-purple-500/20'
+                                        : visitor.referrer === 'Google Search'
+                                        ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                                        : 'bg-white/5 text-white/70 border-white/10'
+                                    }`}
+                                  >
+                                    {visitor.referrer || 'Direct'}
+                                  </span>
+                                </td>
+
+                                {/* 6. Date & Time */}
+                                <td className="py-4 px-5 whitespace-nowrap">
+                                  <div className="flex items-center gap-1.5 text-white/80">
+                                    <Clock className="w-3.5 h-3.5 text-white/40" />
+                                    <span className="font-medium text-white/90">
+                                      {formatVisitorDateTime(visitor.lastVisitedAt)}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                {/* 7. Action */}
+                                <td className="py-4 px-5 text-right whitespace-nowrap">
+                                  <button
+                                    onClick={() => handleDeleteVisitor(visitorKey, displayName)}
+                                    className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all cursor-pointer opacity-80 group-hover:opacity-100"
+                                    title="Delete visitor record"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                }
+
+                // CARDS VIEW (Detailed specs)
+                return (
+                  <div className="grid grid-cols-1 gap-4">
+                    {filtered.map((visitor) => {
+                      const visitorKey = visitor.id || visitor.visitorId;
+                      const isIdentified = visitor.hasContacted || (!visitor.name.startsWith('Guest #') && visitor.name !== 'Anonymous' && visitor.name.length > 2);
+                      const displayName = isIdentified
+                        ? visitor.name
+                        : (visitor.name.startsWith('Guest #') ? visitor.name : `Guest #${visitor.visitorId.slice(-4).toUpperCase()}`);
+
+                      return (
+                        <div
+                          key={visitorKey}
+                          className="p-5 sm:p-6 rounded-3xl bg-[#111116] border border-white/10 hover:border-white/20 transition-all space-y-4"
+                        >
+                          {/* Top Row: Visitor Identity, Badges, and Timestamp */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm ${
+                                  isIdentified
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                    : 'bg-[#B600A8]/20 text-[#B600A8] border border-[#B600A8]/40'
+                                }`}
+                              >
+                                {visitor.deviceType === 'Mobile' ? (
+                                  <Smartphone className="w-5 h-5" />
+                                ) : visitor.deviceType === 'Tablet' ? (
+                                  <Tablet className="w-5 h-5" />
+                                ) : (
+                                  <Monitor className="w-5 h-5" />
+                                )}
+                              </div>
+
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-sans font-bold text-sm sm:text-base text-white">
+                                    {displayName}
+                                  </span>
+
+                                  {isIdentified ? (
+                                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold flex items-center gap-1">
+                                      <CheckCircle2 className="w-2.5 h-2.5" />
+                                      Identified Lead
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/50 font-mono text-[10px]">
+                                      Anonymous Visitor
+                                    </span>
+                                  )}
+
+                                  <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono text-[10px]">
+                                    {visitor.visitCount} {visitor.visitCount === 1 ? 'visit' : 'visits'}
+                                  </span>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-white/40 mt-0.5">
+                                  <span>ID: {visitor.visitorId}</span>
+                                  {visitor.currentPath && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="text-white/60">Page: {visitor.currentPath}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-1.5 font-mono text-[11px] text-white/40">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>{visitor.lastVisitedAt ? new Date(visitor.lastVisitedAt).toLocaleString() : 'Just now'}</span>
+                              </div>
+
+                              <button
+                                onClick={() => handleDeleteVisitor(visitorKey, visitor.name)}
+                                className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all cursor-pointer"
+                                title="Delete visitor record"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Device & System Specifications Grid */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {/* Device & Model */}
+                            <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col">
+                              <span className="text-[10px] font-mono uppercase text-white/40 flex items-center gap-1">
+                                <Smartphone className="w-3 h-3 text-[#B600A8]" />
+                                Device Model
+                              </span>
+                              <span className="text-xs font-semibold text-white mt-1 truncate" title={visitor.deviceModel || visitor.deviceType}>
+                                {visitor.deviceModel || visitor.deviceType || 'Desktop PC'}
+                              </span>
+                            </div>
+
+                            {/* OS */}
+                            <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col">
+                              <span className="text-[10px] font-mono uppercase text-white/40 flex items-center gap-1">
+                                <Monitor className="w-3 h-3 text-cyan-400" />
+                                Operating System
+                              </span>
+                              <span className="text-xs font-semibold text-cyan-300 mt-1 truncate" title={visitor.os}>
+                                {visitor.os || 'Unknown OS'}
+                              </span>
+                            </div>
+
+                            {/* Browser */}
+                            <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col">
+                              <span className="text-[10px] font-mono uppercase text-white/40 flex items-center gap-1">
+                                <Globe className="w-3 h-3 text-amber-400" />
+                                Browser
+                              </span>
+                              <span className="text-xs font-semibold text-amber-300 mt-1 truncate" title={visitor.browser}>
+                                {visitor.browser || 'Modern Browser'}
+                              </span>
+                            </div>
+
+                            {/* Screen Resolution */}
+                            <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col">
+                              <span className="text-[10px] font-mono uppercase text-white/40 flex items-center gap-1">
+                                <Activity className="w-3 h-3 text-emerald-400" />
+                                Resolution
+                              </span>
+                              <span className="text-xs font-semibold text-emerald-300 mt-1">
+                                {visitor.screenResolution || 'Desktop Display'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Location, Timezone, and Traffic Origin */}
+                          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs font-mono text-white/50 border-t border-white/5">
+                            <div className="flex flex-wrap items-center gap-3">
+                              {visitor.timezone && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3 text-white/40" />
+                                  <span>Timezone: {visitor.timezone}</span>
+                                </span>
+                              )}
+                              {(visitor.city || visitor.country) && (
+                                <span className="flex items-center gap-1">
+                                  <Globe className="w-3 h-3 text-[#B600A8]" />
+                                  <span>
+                                    Location: {[visitor.city, visitor.country].filter(Boolean).join(', ')}
+                                  </span>
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1.5 text-white/60">
+                              <span className="text-white/40">Referrer:</span>
+                              <span className="font-semibold text-white/80 truncate max-w-[200px]" title={visitor.referrerUrl || visitor.referrer}>
+                                {visitor.referrer || 'Direct / Bookmark'}
+                              </span>
                             </div>
                           </div>
                         </div>

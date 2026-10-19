@@ -6,6 +6,7 @@ export interface ContactFormData {
   budget?: string;
   timeline?: string;
   message: string;
+  visitorId?: string;
 }
 
 const resolveApiBase = (): string => {

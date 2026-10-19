@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, CheckCircle2, Sparkles, Loader2, Mail, Phone, MapPin } from 'lucide-react';
 import { sendContactMessage } from '../api/contactApi';
+import { saveVisitorIdentity, getVisitorId } from '../services/analytics';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -44,7 +45,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     setErrorMessage('');
 
     try {
-      await sendContactMessage(formData);
+      const visitorId = getVisitorId();
+      await sendContactMessage({
+        ...formData,
+        visitorId,
+      });
+      saveVisitorIdentity(formData.name);
       setSubmitted(true);
     } catch (err: any) {
       setErrorMessage(err.message || 'Something went wrong. Please try again.');
