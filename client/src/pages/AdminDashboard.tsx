@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   User,
   FolderGit2,
@@ -70,23 +70,22 @@ import {
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const VALID_TABS = ['details', 'projects', 'skills', 'inquiries', 'analytics'] as const;
+  type AdminTab = typeof VALID_TABS[number];
 
   // Active Menu Tab: 'details' | 'projects' | 'skills' | 'inquiries' | 'analytics'
   // Persisted in URL (?tab=...) and localStorage so reloads never lose the current tab
-  const getInitialTab = (): 'details' | 'projects' | 'skills' | 'inquiries' | 'analytics' => {
+  const getInitialTab = (): AdminTab => {
     try {
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get('tab');
-      if (tabParam && ['details', 'projects', 'skills', 'inquiries', 'analytics'].includes(tabParam)) {
-        return tabParam as any;
+      const tabParam = searchParams.get('tab') as AdminTab;
+      if (tabParam && VALID_TABS.includes(tabParam)) {
+        return tabParam;
       }
-      const hash = window.location.hash.replace('#', '');
-      if (hash && ['details', 'projects', 'skills', 'inquiries', 'analytics'].includes(hash)) {
-        return hash as any;
-      }
-      const saved = localStorage.getItem('het_admin_active_tab');
-      if (saved && ['details', 'projects', 'skills', 'inquiries', 'analytics'].includes(saved)) {
-        return saved as any;
+      const saved = localStorage.getItem('het_admin_active_tab') as AdminTab;
+      if (saved && VALID_TABS.includes(saved)) {
+        return saved;
       }
     } catch {
       // Fallback
@@ -94,32 +93,30 @@ export const AdminDashboard: React.FC = () => {
     return 'details';
   };
 
-  const [activeTab, setActiveTabState] = useState<'details' | 'projects' | 'skills' | 'inquiries' | 'analytics'>(getInitialTab);
+  const [activeTab, setActiveTabState] = useState<AdminTab>(getInitialTab);
 
-  const setActiveTab = (tab: 'details' | 'projects' | 'skills' | 'inquiries' | 'analytics') => {
+  const setActiveTab = (tab: AdminTab) => {
     setActiveTabState(tab);
     try {
       localStorage.setItem('het_admin_active_tab', tab);
-      const url = new URL(window.location.href);
-      url.searchParams.set('tab', tab);
-      window.history.replaceState({}, '', url.toString());
+      setSearchParams({ tab }, { replace: true });
     } catch {
       // Ignore
     }
   };
 
-  // Sync URL query with activeTab
+  // Sync React Router searchParams whenever activeTab changes or on mount
   useEffect(() => {
+    const currentTabParam = searchParams.get('tab');
+    if (currentTabParam !== activeTab) {
+      setSearchParams({ tab: activeTab }, { replace: true });
+    }
     try {
-      const url = new URL(window.location.href);
-      if (url.searchParams.get('tab') !== activeTab) {
-        url.searchParams.set('tab', activeTab);
-        window.history.replaceState({}, '', url.toString());
-      }
+      localStorage.setItem('het_admin_active_tab', activeTab);
     } catch {
       // Ignore
     }
-  }, [activeTab]);
+  }, [activeTab, searchParams, setSearchParams]);
 
   // Loading & notification states
   const [isInitializing, setIsInitializing] = useState(true);

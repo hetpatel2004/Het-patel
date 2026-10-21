@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -20,6 +20,21 @@ const AnalyticsTracker: React.FC = () => {
   return null;
 };
 
+// Preserve active menu tab across URL redirects
+const AdminRedirect: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const validTabs = ['details', 'projects', 'skills', 'inquiries', 'analytics'];
+  const fromQuery = searchParams.get('tab');
+  const fromStorage = typeof window !== 'undefined' ? localStorage.getItem('het_admin_active_tab') : null;
+  const tab = (fromQuery && validTabs.includes(fromQuery))
+    ? fromQuery
+    : (fromStorage && validTabs.includes(fromStorage))
+    ? fromStorage
+    : 'details';
+
+  return <Navigate to={`/admin/dashboard?tab=${tab}`} replace />;
+};
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
@@ -31,15 +46,15 @@ export const App: React.FC = () => {
         {/* Secret / Direct URL Login route */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Admin Dashboard routes */}
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        {/* Admin Dashboard routes with tab preservation */}
+        <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/analytics" element={<Navigate to="/admin/dashboard?tab=analytics" replace />} />
         <Route path="/admin/visitors" element={<Navigate to="/admin/dashboard?tab=analytics" replace />} />
         <Route path="/admin/inquiries" element={<Navigate to="/admin/dashboard?tab=inquiries" replace />} />
         <Route path="/admin/projects" element={<Navigate to="/admin/dashboard?tab=projects" replace />} />
         <Route path="/admin/skills" element={<Navigate to="/admin/dashboard?tab=skills" replace />} />
-        <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/dashboard" element={<AdminRedirect />} />
 
         {/* Catch-all redirect to public portfolio */}
         <Route path="*" element={<Navigate to="/" replace />} />
