@@ -182,13 +182,6 @@ export const getAnalyticsStats = async (req, res) => {
 
     if (connected) {
       try {
-        const count = await Visitor.countDocuments();
-        if (count === 0) {
-          const seedData = getAllVisitors();
-          if (seedData && seedData.length > 0) {
-            await Visitor.insertMany(seedData.map(v => ({ ...v, _id: undefined })));
-          }
-        }
         visitors = await Visitor.find().sort({ lastVisitedAt: -1 }).limit(200).lean();
       } catch (dbErr) {
         console.warn('[Analytics MongoDB Fetch Warning]:', dbErr.message);
