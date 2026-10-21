@@ -234,8 +234,19 @@ export const recordVisitor = (data) => {
 
   if (existingIndex !== -1) {
     const existing = inMemoryStore.visitors[existingIndex];
+    if (data.isHeartbeat) {
+      if (typeof data.timeSpentSeconds === 'number') {
+        existing.timeSpentSeconds = Math.max(existing.timeSpentSeconds || 0, data.timeSpentSeconds);
+      }
+      existing.lastVisitedAt = now;
+      saveStore();
+      return existing;
+    }
     existing.visitCount = (existing.visitCount || 1) + 1;
     existing.lastVisitedAt = now;
+    if (typeof data.timeSpentSeconds === 'number') {
+      existing.timeSpentSeconds = Math.max(existing.timeSpentSeconds || 0, data.timeSpentSeconds);
+    }
     if (data.name && !existing.name) existing.name = data.name;
     if (data.hasContacted) existing.hasContacted = true;
     if (data.currentPath) existing.currentPath = data.currentPath;
@@ -261,6 +272,7 @@ export const recordVisitor = (data) => {
     city: data.city || '',
     visitCount: 1,
     hasContacted: Boolean(data.hasContacted),
+    timeSpentSeconds: typeof data.timeSpentSeconds === 'number' ? data.timeSpentSeconds : 0,
     lastVisitedAt: now,
     createdAt: now,
   };

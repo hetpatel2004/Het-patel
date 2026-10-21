@@ -68,6 +68,10 @@ const visitorSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    timeSpentSeconds: {
+      type: Number,
+      default: 0,
+    },
     lastVisitedAt: {
       type: Date,
       default: Date.now,

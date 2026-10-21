@@ -43,8 +43,82 @@ export const saveVisitorIdentity = (name: string) => {
 };
 
 // Track Pageview silently
+export const getTimeSpentSeconds = (): number => {
+  const start = parseInt(sessionStorage.getItem('hp_session_start') || '0', 10);
+  if (!start) return 0;
+  return Math.max(0, Math.round((Date.now() - start) / 1000));
+};
+
+export const initDurationTracking = () => {
+  if (!sessionStorage.getItem('hp_session_start')) {
+    sessionStorage.setItem('hp_session_start', String(Date.now()));
+  }
+
+  const sendDwellPing = (isFinal: boolean = false) => {
+    try {
+      const visitorId = getVisitorId();
+      const timeSpentSeconds = getTimeSpentSeconds();
+      if (!visitorId || timeSpentSeconds <= 0) return;
+
+      const payload = JSON.stringify({
+        visitorId,
+        timeSpentSeconds,
+        isHeartbeat: true,
+      });
+
+      if (isFinal && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon(`${API_BASE}/analytics/visit`, blob);
+      } else {
+        fetch(`${API_BASE}/analytics/visit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {
+      // Silent fail
+    }
+  };
+
+  // Heartbeat every 20 seconds while user is actively on page
+  const interval = setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      sendDwellPing(false);
+    }
+  }, 20000);
+
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') {
+      sendDwellPing(true);
+    }
+  };
+
+  const handlePageHide = () => {
+    sendDwellPing(true);
+  };
+
+  window.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('pagehide', handlePageHide);
+  window.addEventListener('beforeunload', handlePageHide);
+
+  return () => {
+    clearInterval(interval);
+    window.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('pagehide', handlePageHide);
+    window.removeEventListener('beforeunload', handlePageHide);
+  };
+};
+
 export const trackVisit = async (force: boolean = false) => {
   try {
+    if (!sessionStorage.getItem('hp_session_start')) {
+      sessionStorage.setItem('hp_session_start', String(Date.now()));
+    }
+
     // Check session debounce: Don't track more than once every 15 minutes unless forced (e.g. name update)
     const now = Date.now();
     const lastTracked = parseInt(sessionStorage.getItem('hp_last_visit_ping') || '0', 10);
@@ -83,6 +157,7 @@ export const trackVisit = async (force: boolean = false) => {
         currentPath,
         timezone,
         hasContacted,
+        timeSpentSeconds: getTimeSpentSeconds(),
       }),
       keepalive: true,
     }).catch(() => {

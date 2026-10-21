@@ -103,6 +103,8 @@ export const recordVisit = async (req, res) => {
       currentPath,
       timezone,
       hasContacted,
+      timeSpentSeconds,
+      isHeartbeat,
     } = req.body || {};
 
     const vid = visitorId || `vis_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -132,6 +134,8 @@ export const recordVisit = async (req, res) => {
       country: 'India',
       city: 'Ahmedabad',
       hasContacted: Boolean(hasContacted),
+      timeSpentSeconds: typeof timeSpentSeconds === 'number' ? timeSpentSeconds : 0,
+      isHeartbeat: Boolean(isHeartbeat),
       lastVisitedAt: new Date(),
     };
 
@@ -145,15 +149,26 @@ export const recordVisit = async (req, res) => {
       try {
         const existing = await Visitor.findOne({ visitorId: vid });
         if (existing) {
-          existing.visitCount = (existing.visitCount || 1) + 1;
-          existing.lastVisitedAt = new Date();
-          if (cleanName && (!existing.name || existing.name.startsWith('Guest #'))) {
-            existing.name = cleanName;
+          if (isHeartbeat) {
+            if (typeof timeSpentSeconds === 'number') {
+              existing.timeSpentSeconds = Math.max(existing.timeSpentSeconds || 0, timeSpentSeconds);
+            }
+            existing.lastVisitedAt = new Date();
+            dbRecord = await existing.save();
+          } else {
+            existing.visitCount = (existing.visitCount || 1) + 1;
+            existing.lastVisitedAt = new Date();
+            if (typeof timeSpentSeconds === 'number') {
+              existing.timeSpentSeconds = Math.max(existing.timeSpentSeconds || 0, timeSpentSeconds);
+            }
+            if (cleanName && (!existing.name || existing.name.startsWith('Guest #'))) {
+              existing.name = cleanName;
+            }
+            if (hasContacted) existing.hasContacted = true;
+            if (currentPath) existing.currentPath = currentPath;
+            if (screenResolution) existing.screenResolution = screenResolution;
+            dbRecord = await existing.save();
           }
-          if (hasContacted) existing.hasContacted = true;
-          if (currentPath) existing.currentPath = currentPath;
-          if (screenResolution) existing.screenResolution = screenResolution;
-          dbRecord = await existing.save();
         } else {
           dbRecord = await Visitor.create(payload);
         }
@@ -218,6 +233,12 @@ export const getAnalyticsStats = async (req, res) => {
     // Contacted visitors count
     const contactedCount = visitors.filter(v => v.hasContacted || (!v.name.startsWith('Guest #') && v.name.length > 2)).length;
 
+    // Time spent calculations
+    const totalTimeSpentSeconds = visitors.reduce((sum, v) => sum + (v.timeSpentSeconds || 0), 0);
+    const avgTimeSpentSeconds = totalUniqueVisitors > 0
+      ? Math.round(totalTimeSpentSeconds / totalUniqueVisitors)
+      : 0;
+
     return res.status(200).json({
       success: true,
       summary: {
@@ -229,6 +250,8 @@ export const getAnalyticsStats = async (req, res) => {
         mobilePercent,
         desktopPercent,
         contactedCount,
+        totalTimeSpentSeconds,
+        avgTimeSpentSeconds,
       },
       recentVisitors: visitors.map(v => ({
         id: v._id?.toString() || v.id,
@@ -247,6 +270,7 @@ export const getAnalyticsStats = async (req, res) => {
         country: v.country || 'India',
         city: v.city || 'Ahmedabad',
         visitCount: v.visitCount || 1,
+        timeSpentSeconds: v.timeSpentSeconds || 0,
         lastVisitedAt: v.lastVisitedAt || v.createdAt,
       })),
     });

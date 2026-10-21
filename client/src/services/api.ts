@@ -338,6 +338,7 @@ export interface VisitorRecord {
   country: string;
   city: string;
   visitCount: number;
+  timeSpentSeconds?: number;
   lastVisitedAt: string;
 }
 
@@ -354,6 +355,8 @@ export interface AnalyticsSummary {
   mobilePercent: number;
   desktopPercent: number;
   contactedCount: number;
+  totalTimeSpentSeconds?: number;
+  avgTimeSpentSeconds?: number;
 }
 
 export interface AnalyticsStatsResponse {

@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { PortfolioPage } from './pages/PortfolioPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { trackVisit } from './services/analytics';
+import { trackVisit, initDurationTracking } from './services/analytics';
 
 const AnalyticsTracker: React.FC = () => {
   const location = useLocation();
@@ -12,6 +12,8 @@ const AnalyticsTracker: React.FC = () => {
     // Silently track public page visits (exclude admin & login routes)
     if (!location.pathname.startsWith('/admin') && !location.pathname.startsWith('/login')) {
       trackVisit();
+      const cleanup = initDurationTracking();
+      return cleanup;
     }
   }, [location.pathname]);
 
