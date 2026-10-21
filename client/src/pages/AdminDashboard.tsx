@@ -72,7 +72,54 @@ export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   // Active Menu Tab: 'details' | 'projects' | 'skills' | 'inquiries' | 'analytics'
-  const [activeTab, setActiveTab] = useState<'details' | 'projects' | 'skills' | 'inquiries' | 'analytics'>('details');
+  // Persisted in URL (?tab=...) and localStorage so reloads never lose the current tab
+  const getInitialTab = (): 'details' | 'projects' | 'skills' | 'inquiries' | 'analytics' => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam && ['details', 'projects', 'skills', 'inquiries', 'analytics'].includes(tabParam)) {
+        return tabParam as any;
+      }
+      const hash = window.location.hash.replace('#', '');
+      if (hash && ['details', 'projects', 'skills', 'inquiries', 'analytics'].includes(hash)) {
+        return hash as any;
+      }
+      const saved = localStorage.getItem('het_admin_active_tab');
+      if (saved && ['details', 'projects', 'skills', 'inquiries', 'analytics'].includes(saved)) {
+        return saved as any;
+      }
+    } catch {
+      // Fallback
+    }
+    return 'details';
+  };
+
+  const [activeTab, setActiveTabState] = useState<'details' | 'projects' | 'skills' | 'inquiries' | 'analytics'>(getInitialTab);
+
+  const setActiveTab = (tab: 'details' | 'projects' | 'skills' | 'inquiries' | 'analytics') => {
+    setActiveTabState(tab);
+    try {
+      localStorage.setItem('het_admin_active_tab', tab);
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tab);
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      // Ignore
+    }
+  };
+
+  // Sync URL query with activeTab
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('tab') !== activeTab) {
+        url.searchParams.set('tab', activeTab);
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch {
+      // Ignore
+    }
+  }, [activeTab]);
 
   // Loading & notification states
   const [isInitializing, setIsInitializing] = useState(true);
@@ -179,23 +226,30 @@ export const AdminDashboard: React.FC = () => {
 
   const handleSignOut = () => {
     clearAuthToken();
+    try {
+      localStorage.removeItem('het_admin_active_tab');
+    } catch {}
     navigate('/login', { replace: true });
   };
 
   // -------------------------------------------------------------
   // TAB 5: VISITOR ANALYTICS HANDLERS
   // -------------------------------------------------------------
-  const loadAnalytics = async () => {
-    setIsAnalyticsLoading(true);
+  const loadAnalytics = async (isSilent = false) => {
+    if (!isSilent) setIsAnalyticsLoading(true);
     try {
       const data = await apiGetAnalyticsStats();
       setAnalyticsSummary(data.summary);
       setVisitorLogs(data.recentVisitors || []);
-      showToast('Analytics & traffic records updated.');
+      if (!isSilent) {
+        showToast('Analytics & traffic records updated.');
+      }
     } catch (err: any) {
-      showToast(err.message || 'Failed to refresh analytics', 'error');
+      if (!isSilent) {
+        showToast(err.message || 'Failed to refresh analytics', 'error');
+      }
     } finally {
-      setIsAnalyticsLoading(false);
+      if (!isSilent) setIsAnalyticsLoading(false);
     }
   };
 
@@ -450,30 +504,40 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const loadInquiries = async () => {
-    setIsInquiriesLoading(true);
+  const loadInquiries = async (isSilent = false) => {
+    if (!isSilent) setIsInquiriesLoading(true);
     try {
       const data = await apiGetInquiries();
       setInquiries(data);
-      showToast('Client inquiries synced from database.');
+      if (!isSilent) {
+        showToast('Client inquiries synced from database.');
+      }
     } catch (err: any) {
-      showToast(err.message || 'Failed to refresh inquiries', 'error');
+      if (!isSilent) {
+        showToast(err.message || 'Failed to refresh inquiries', 'error');
+      }
     } finally {
-      setIsInquiriesLoading(false);
+      if (!isSilent) setIsInquiriesLoading(false);
     }
   };
 
-  // Dynamic Background Polling for Inquiries (auto-sync every 15s when Tab 4 is open)
+  // Dynamic Background Polling for Inquiries (auto-sync every 5s when Tab 4 is open)
   useEffect(() => {
     if (activeTab !== 'inquiries') return;
-    const interval = setInterval(async () => {
-      try {
-        const fresh = await apiGetInquiries();
-        setInquiries(fresh);
-      } catch {
-        // Silent background polling
-      }
-    }, 15000);
+    loadInquiries(true);
+    const interval = setInterval(() => {
+      loadInquiries(true);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
+  // Dynamic Background Polling for Visitor Analytics (auto-sync every 4s when Tab 5 is open)
+  useEffect(() => {
+    if (activeTab !== 'analytics') return;
+    loadAnalytics(true);
+    const interval = setInterval(() => {
+      loadAnalytics(true);
+    }, 4000);
     return () => clearInterval(interval);
   }, [activeTab]);
 
@@ -1304,10 +1368,10 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
-                    onClick={() => loadInquiries()}
+                    onClick={() => loadInquiries(false)}
                     disabled={isInquiriesLoading}
                     className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-white transition-all cursor-pointer disabled:opacity-50"
-                    title="Sync inquiries from database"
+                    title="Manual sync"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 text-[#B600A8] ${isInquiriesLoading ? 'animate-spin' : ''}`} />
                     <span>Refresh</span>
@@ -1584,12 +1648,21 @@ export const AdminDashboard: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-xs shadow-inner">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                    </span>
+                    <span className="font-bold">Real-Time Feed</span>
+                    <span className="text-white/40 hidden md:inline">• Auto-syncs live</span>
+                  </div>
+
                   <button
-                    onClick={() => loadAnalytics()}
+                    onClick={() => loadAnalytics(false)}
                     disabled={isAnalyticsLoading}
                     className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-white transition-all cursor-pointer disabled:opacity-50"
-                    title="Refresh analytics data"
+                    title="Manual refresh"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 text-[#B600A8] ${isAnalyticsLoading ? 'animate-spin' : ''}`} />
                     <span>Refresh</span>

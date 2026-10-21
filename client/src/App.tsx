@@ -34,6 +34,11 @@ export const App: React.FC = () => {
         {/* Admin Dashboard routes */}
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/analytics" element={<Navigate to="/admin/dashboard?tab=analytics" replace />} />
+        <Route path="/admin/visitors" element={<Navigate to="/admin/dashboard?tab=analytics" replace />} />
+        <Route path="/admin/inquiries" element={<Navigate to="/admin/dashboard?tab=inquiries" replace />} />
+        <Route path="/admin/projects" element={<Navigate to="/admin/dashboard?tab=projects" replace />} />
+        <Route path="/admin/skills" element={<Navigate to="/admin/dashboard?tab=skills" replace />} />
         <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
 
         {/* Catch-all redirect to public portfolio */}
